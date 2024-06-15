@@ -67,3 +67,38 @@ func Test_NewConfig(t *testing.T) {
 	assert.Equal(t, "bar_ref", cfg.GetString("ref_foo"))
 	assert.Equal(t, "bar", cfg.GetString("foo"))
 }
+
+func Test_ToStruct(t *testing.T) {
+	t.Run("it should parse to struct succesfully", func(t *testing.T) {
+		// Given
+		type cfgStruct struct {
+			Foo      string
+			Bar      *string
+			FooField string `mapstructure:"foo-field"`
+			FooS     struct {
+				FooFoo int
+				FooBar bool
+			}
+		}
+
+		v := viper.New()
+		v.Set("p.foo", "foo_str")
+		v.Set("p.bar", nil)
+		v.Set("p.fooS.fooFoo", 12)
+		v.Set("p.foo-field", "foo-kebab")
+
+		cfg := NewConfig(v, nil)
+
+		// When
+		res, err := ToStruct[cfgStruct](cfg, "p")
+
+		// Then
+		assert.NoError(t, err)
+		assert.Equal(t, "foo_str", res.Foo)
+		assert.Nil(t, res.Bar)
+		assert.Equal(t, 12, res.FooS.FooFoo)
+		assert.Equal(t, false, res.FooS.FooBar)
+		assert.Equal(t, "foo-kebab", res.FooField)
+
+	})
+}

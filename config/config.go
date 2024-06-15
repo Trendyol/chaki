@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Trendyol/chaki/util/wrapper"
+	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -118,6 +119,12 @@ func (g *Config) Get(key string) any {
 
 func (g *Config) Set(key string, value any) {
 	g.v.Set(g.key(key), value)
+}
+
+func ToStruct[T any](cfg *Config, key string) (t T, err error) {
+	mp := cfg.GetStringMap(key)
+	err = mapstructure.Decode(mp, &t)
+	return
 }
 
 // Exists check a key exists or not
