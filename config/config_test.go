@@ -101,4 +101,29 @@ func Test_ToStruct(t *testing.T) {
 		assert.Equal(t, "foo-kebab", res.FooField)
 
 	})
+
+	t.Run("it should parse reference values to struct succesfully", func(t *testing.T) {
+		// Given
+		type cfgStruct struct {
+			Foo string
+		}
+
+		v := viper.New()
+		v.Set("p.foo", "${bar:foo}")
+
+		barref := viper.New()
+		barref.Set("foo", "bar_foo")
+
+		cfg := NewConfig(v, map[string]*viper.Viper{
+			"bar": barref,
+		})
+
+		// When
+		res, err := ToStruct[cfgStruct](cfg, "p")
+
+		// Then
+		assert.NoError(t, err)
+		assert.Equal(t, "bar_foo", res.Foo)
+
+	})
 }

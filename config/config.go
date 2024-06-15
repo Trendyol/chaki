@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Trendyol/chaki/util/wrapper"
-	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
@@ -32,11 +31,15 @@ func NewConfig(v *viper.Viper, references map[string]*viper.Viper) *Config {
 		r[key] = value
 	}
 
-	return &Config{
+	c := &Config{
 		references: r,
 		prefix:     "",
 		v:          v,
 	}
+
+	c.parseReferences()
+
+	return c
 }
 
 func newEnvViper() *viper.Viper {
@@ -122,9 +125,29 @@ func (g *Config) Set(key string, value any) {
 }
 
 func ToStruct[T any](cfg *Config, key string) (t T, err error) {
-	mp := cfg.GetStringMap(key)
-	err = mapstructure.Decode(mp, &t)
+	err = cfg.v.UnmarshalKey(cfg.key(key), &t)
 	return
+}
+
+func (g *Config) parseReferences() {
+	keys := g.v.AllKeys()
+	for _, key := range keys {
+		ss, ok := g.v.Get(key).(string)
+		if !ok {
+			continue
+		}
+		refkey, value, ok := parseReferenceKey(ss)
+		if !ok {
+			continue
+		}
+
+		ref := g.references[refkey]
+		if ref == nil {
+			panic("no reference found for: " + refkey)
+		}
+		g.Set(key, getValue(ref, value, g.references))
+
+	}
 }
 
 // Exists check a key exists or not
