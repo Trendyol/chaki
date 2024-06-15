@@ -73,6 +73,7 @@ func (app *App) applyStdModules(o *options) error {
 }
 
 func (app *App) Start(opts ...Option) error {
+	opts = append(app.options, opts...)
 	o := getOptions(opts...)
 
 	if err := app.applyStdModules(o); err != nil {
