@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/Trendyol/chaki/util/slc"
 	"github.com/Trendyol/chaki/util/wrapper"
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
@@ -69,47 +70,47 @@ func NewConfigFromPaths(path string, referencePaths map[string]string) (*Config,
 }
 
 func (g *Config) GetBool(k string) bool {
-	return getValueT(g.v, g.key(k), cast.ToBoolE, g.references)
+	return getValueT(g.v, g.key(k), cast.ToBoolE)
 }
 
 func (g *Config) GetDuration(k string) time.Duration {
-	return getValueT(g.v, g.key(k), cast.ToDurationE, g.references)
+	return getValueT(g.v, g.key(k), cast.ToDurationE)
 }
 
 func (g *Config) GetFloat64(k string) float64 {
-	return getValueT(g.v, g.key(k), cast.ToFloat64E, g.references)
+	return getValueT(g.v, g.key(k), cast.ToFloat64E)
 }
 
 func (g *Config) GetInt(k string) int {
-	return getValueT(g.v, g.key(k), cast.ToIntE, g.references)
+	return getValueT(g.v, g.key(k), cast.ToIntE)
 }
 
 func (g *Config) GetInt32(k string) int32 {
-	return getValueT(g.v, g.key(k), cast.ToInt32E, g.references)
+	return getValueT(g.v, g.key(k), cast.ToInt32E)
 }
 
 func (g *Config) GetInt64(k string) int64 {
-	return getValueT(g.v, g.key(k), cast.ToInt64E, g.references)
+	return getValueT(g.v, g.key(k), cast.ToInt64E)
 }
 
 func (g *Config) GetIntSlice(k string) []int {
-	return getValueT(g.v, g.key(k), cast.ToIntSliceE, g.references)
+	return getValueT(g.v, g.key(k), cast.ToIntSliceE)
 }
 
 func (g *Config) GetString(k string) string {
-	return getValueT(g.v, g.key(k), cast.ToStringE, g.references)
+	return getValueT(g.v, g.key(k), cast.ToStringE)
 }
 
 func (g *Config) GetStringMap(k string) map[string]any {
-	return getValueT(g.v, g.key(k), cast.ToStringMapE, g.references)
+	return getValueT(g.v, g.key(k), cast.ToStringMapE)
 }
 
 func (g *Config) GetStringSlice(k string) []string {
-	return getValueT(g.v, g.key(k), cast.ToStringSliceE, g.references)
+	return getValueT(g.v, g.key(k), cast.ToStringSliceE)
 }
 
 func (g *Config) GetTime(k string) time.Time {
-	return getValueT(g.v, g.key(k), cast.ToTimeE, g.references)
+	return getValueT(g.v, g.key(k), cast.ToTimeE)
 }
 
 func (g *Config) SetDefault(key string, value any) {
@@ -117,7 +118,7 @@ func (g *Config) SetDefault(key string, value any) {
 }
 
 func (g *Config) Get(key string) any {
-	return getValue(g.v, g.key(key), g.references)
+	return getValue(g.v, g.key(key))
 }
 
 func (g *Config) Set(key string, value any) {
@@ -130,24 +131,17 @@ func ToStruct[T any](cfg *Config, key string) (t T, err error) {
 }
 
 func (g *Config) parseReferences() {
-	keys := g.v.AllKeys()
-	for _, key := range keys {
-		ss, ok := g.v.Get(key).(string)
-		if !ok {
-			continue
+	slc.ForEach(g.v.AllKeys(), func(key string) {
+		vv := g.v.Get(key)
+		if refkey, value, ok := parseReferenceValue(vv); ok {
+			ref := g.references[refkey]
+			if ref == nil {
+				panic("no reference found for: " + refkey)
+			}
+			vv = getValueByReference(ref, value, g.references)
 		}
-		refkey, value, ok := parseReferenceKey(ss)
-		if !ok {
-			continue
-		}
-
-		ref := g.references[refkey]
-		if ref == nil {
-			panic("no reference found for: " + refkey)
-		}
-		g.Set(key, getValue(ref, value, g.references))
-
-	}
+		g.Set(key, vv)
+	})
 }
 
 // Exists check a key exists or not
@@ -177,8 +171,8 @@ func (g *Config) key(k string) string {
 	return k
 }
 
-func getValueT[T any](v *viper.Viper, key string, caster func(any) (T, error), references map[string]*viper.Viper) T {
-	t := getValue(v, key, references)
+func getValueT[T any](v *viper.Viper, key string, caster func(any) (T, error)) T {
+	t := getValue(v, key)
 	r, err := caster(t)
 	if err != nil {
 		panic(err.Error())
@@ -186,29 +180,38 @@ func getValueT[T any](v *viper.Viper, key string, caster func(any) (T, error), r
 	return r
 }
 
-func getValue(v *viper.Viper, key string, references map[string]*viper.Viper) any {
+func getValue(v *viper.Viper, key string) any {
 	t := v.Get(key)
 	if t == nil {
 		panic(fmt.Sprintf("key not found in config %s", key))
 	}
-
-	if ts, ok := t.(string); ok {
-		k, v, ok := parseReferenceKey(ts)
-		if ok {
-			ref := references[k]
-			if ref == nil {
-				panic("no reference found for: " + k)
-			}
-			return getValue(ref, v, references)
-		}
-	}
-
 	return t
 }
 
-var referenceKeyRegexp = regexp.MustCompile(`\$\{([A-Za-z0-9\-_]*):([A-Za-z0-9\-_]*)\}`)
+func getValueByReference(v *viper.Viper, key string, references map[string]*viper.Viper) any {
+	t := v.Get(key)
+	if t == nil {
+		panic(fmt.Sprintf("key not found in config %s", key))
+	}
+	key, val, ok := parseReferenceValue(t)
+	if ok {
+		ref := references[key]
+		if ref == nil {
+			panic("no reference found for: " + key)
+		}
+		return getValueByReference(ref, val, references)
+	}
+	return t
+}
 
-func parseReferenceKey(s string) (key string, value string, ok bool) {
+var referenceKeyRegexp = regexp.MustCompile(`\$\{([A-Za-z0-9\-_]*):([A-Za-z0-9\-_\.]*)\}`)
+
+func parseReferenceValue(v any) (key string, ref string, ok bool) {
+	s, ok := v.(string)
+	if !ok {
+		return "", "", false
+	}
+
 	if !referenceKeyRegexp.MatchString(s) {
 		return "", "", false
 	}
