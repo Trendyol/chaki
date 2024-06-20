@@ -1,0 +1,5 @@
+kafka:
+  producer:
+    example:
+      brokers: "address1,address2"
+    
