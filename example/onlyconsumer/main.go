@@ -19,6 +19,7 @@ func main() {
 	)
 
 	app.Provide(
+		newInterceptor,
 		NewExample2Consumer,
 		NewExampleConsumer,
 	)
@@ -46,5 +47,14 @@ func NewExampleConsumer() consumer.Consumer {
 	return consumer.NewFn("example1", func(m *consumer.Message) error {
 		logger.From(m.Context).Info("message arrived")
 		return nil
+	})
+}
+
+func newInterceptor() consumer.Interceptor {
+	return consumer.InterceptorFunc(func(msg *consumer.Message, next consumer.ConsumeFn) error {
+		logger.From(msg.Context).Info("consumer interceptor before")
+		err := next(msg)
+		logger.From(msg.Context).Info("consumer interceptor after")
+		return err
 	})
 }
