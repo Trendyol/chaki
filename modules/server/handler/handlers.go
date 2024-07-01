@@ -7,7 +7,7 @@ func Get[Req, Res any](path string, h HandlerFunc[Req, Res]) Handler {
 }
 
 func Post[Req, Res any](path string, h HandlerFunc[Req, Res]) Handler {
-	return New[Req, Res](http.MethodGet, path, h)
+	return New[Req, Res](http.MethodPost, path, h)
 }
 
 func Patch[Req, Res any](path string, h HandlerFunc[Req, Res]) Handler {

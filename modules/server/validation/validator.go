@@ -76,7 +76,6 @@ func Validate(s any) error {
 	if errs != nil {
 		var fieldErrors []FieldError
 
-		// TODO: Test this.
 		var validatorErrors validator.ValidationErrors
 		errors.As(errs, &validatorErrors)
 
