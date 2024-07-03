@@ -83,6 +83,10 @@ func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.Fib
 		ErrorHandler:   middlewares.ErrHandler,
 	})
 
+	if serverCfg.Exists("cors") {
+		app.Use(middlewares.CORSMiddleware(serverCfg.Of("cors")))
+	}
+
 	app.Use(
 		middlewares.ContextBinder(),
 		middlewares.HealthCheck(
