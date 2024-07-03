@@ -71,26 +71,23 @@ func OfController(ct controller.Controller) *Server {
 	return s
 }
 
-func setDefaultFiberConfigs(cfg *config.Config) {
-	of := cfg.Of("server")
-	of.SetDefault("bodylimit", 4*1024*1024)
-	of.SetDefault("readbuffersize", 4*4096)
-	of.SetDefault("healthcheck.endpoints.liveness", "/__monitor/live")
-	of.SetDefault("healthcheck.endpoints.readiness", "/__monitor/ready")
-}
-
 func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.FiberAppWrapper, groups []common.MiddlewareGroup) *fiber.App {
 	setDefaultFiberConfigs(cfg)
+	serverCfg := cfg.Of("server")
+
 	app := fiber.New(fiber.Config{
-		BodyLimit:      cfg.GetInt("server.bodylimit"),
-		ReadBufferSize: cfg.GetInt("server.readbuffersize"),
+		BodyLimit:      serverCfg.GetInt("bodylimit"),
+		ReadBufferSize: serverCfg.GetInt("readbuffersize"),
+		ReadTimeout:    serverCfg.GetDuration("readtimeout"),
+		WriteTimeout:   serverCfg.GetDuration("writetimeout"),
 		ErrorHandler:   middlewares.ErrHandler,
 	})
 
 	app.Use(
+		middlewares.ContextBinder(),
 		middlewares.HealthCheck(
-			cfg.GetString("server.healthcheck.endpoints.liveness"),
-			cfg.GetString("server.healthcheck.endpoints.readiness"),
+			serverCfg.GetString("healthcheck.endpoints.liveness"),
+			serverCfg.GetString("healthcheck.endpoints.readiness"),
 		),
 		middlewares.Recover(),
 	)
@@ -110,4 +107,14 @@ func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.Fib
 	}
 
 	return app
+}
+
+func setDefaultFiberConfigs(cfg *config.Config) {
+	serverCfg := cfg.Of("server")
+	serverCfg.SetDefault("bodylimit", 4*1024*1024)
+	serverCfg.SetDefault("readbuffersize", 4*4096)
+	serverCfg.SetDefault("healthcheck.endpoints.liveness", "/__monitor/live")
+	serverCfg.SetDefault("healthcheck.endpoints.readiness", "/__monitor/ready")
+	serverCfg.SetDefault("readtimeout", "10s")
+	serverCfg.SetDefault("writetimeout", "10s")
 }
