@@ -5,8 +5,8 @@ import (
 	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/modules/server/common"
 	"github.com/Trendyol/chaki/modules/server/controller"
-	"github.com/Trendyol/chaki/modules/server/handler"
 	"github.com/Trendyol/chaki/modules/server/middlewares"
+	"github.com/Trendyol/chaki/modules/server/route"
 	"github.com/Trendyol/chaki/util/slc"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
@@ -27,7 +27,7 @@ func New(registries []*registry, cfg *config.Config, app *fiber.App) *Server {
 }
 
 func (s *Server) Start() error {
-	s.registerHandlers()
+	s.registerRoutes()
 	s.cfg.SetDefault("server.addr", ":8080")
 	return s.app.Listen(s.cfg.GetString("server.addr"))
 }
@@ -36,13 +36,13 @@ func (s *Server) Test(req *http.Request, msTimeout ...int) (*http.Response, erro
 	return s.app.Test(req, msTimeout...)
 }
 
-func (s *Server) registerHandlers() {
+func (s *Server) registerRoutes() {
 	// For each registry
 	slc.ForEach(s.registries, func(r *registry) {
-		metas := slc.Map(r.handlers, r.toMeta)
+		metas := slc.Map(r.routes, r.toMeta)
 
 		// For each handler.Meta
-		slc.ForEach(metas, func(m handler.Meta) {
+		slc.ForEach(metas, func(m route.Meta) {
 			handlers := []fiber.Handler{m.Func}
 
 			// Controller's middlewares
@@ -67,7 +67,7 @@ func OfController(ct controller.Controller) *Server {
 			app:        fiber.New(),
 		}
 	)
-	s.registerHandlers()
+	s.registerRoutes()
 	return s
 }
 
