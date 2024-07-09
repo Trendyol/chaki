@@ -1,12 +1,12 @@
 package controller
 
 import (
-	"github.com/Trendyol/chaki/modules/server/handler"
+	"github.com/Trendyol/chaki/modules/server/route"
 	"github.com/gofiber/fiber/v2"
 )
 
 type Controller interface {
-	Handlers() []handler.Handler
+	Routes() []route.Route
 	Prefix() string
 	Middlewares() []fiber.Handler
 	Name() string
@@ -34,8 +34,8 @@ func (b *Base) Middlewares() []fiber.Handler {
 	return b.mws
 }
 
-func (b *Base) Handlers() []handler.Handler {
-	panic("handler method not implemented for controller " + b.name)
+func (b *Base) Routes() []route.Route {
+	panic("need to declare routes for controller: " + b.name)
 }
 
 func (b *Base) SetPrefix(p string) *Base {

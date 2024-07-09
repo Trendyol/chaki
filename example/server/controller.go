@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/Trendyol/chaki/internal/typlect"
 	"github.com/Trendyol/chaki/modules/server/controller"
-	"github.com/Trendyol/chaki/modules/server/handler"
+	"github.com/Trendyol/chaki/modules/server/route"
 )
 
 type HelloController struct {
@@ -20,12 +20,12 @@ func NewHelloController(svc *Service) *HelloController {
 	}
 }
 
-func (c *HelloController) Handlers() []handler.Handler {
-	return []handler.Handler{
-		handler.Get("/greet", c.greetHandler).Name("Greet Handler"),
-		handler.Get("/query", c.greetWithQuery).Name("Greet with query"),
-		handler.Get("/param/:text", c.greetWithParam).Name("Greet with param"),
-		handler.Post("/body", c.greetWithBody).Name("Greet with body"),
+func (c *HelloController) Routes() []route.Route {
+	return []route.Route{
+		route.Get("/greet", c.greetHandler).Name("Greet Route"),
+		route.Get("/query", c.greetWithQuery).Name("Greet with query"),
+		route.Get("/param/:text", c.greetWithParam).Name("Greet with param"),
+		route.Post("/body", c.greetWithBody).Name("Greet with body"),
 	}
 }
 

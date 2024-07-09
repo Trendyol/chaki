@@ -1,4 +1,4 @@
-package handler
+package route
 
 import (
 	"context"
@@ -13,22 +13,22 @@ type NoParam = typlect.NoParam
 
 type HandlerFunc[Req, Res any] func(context.Context, Req) (Res, error)
 
-type Handler interface {
+type Route interface {
 	Meta() Meta
-	Desc(s string) Handler
-	Name(s string) Handler
+	Desc(s string) Route
+	Name(s string) Route
 }
 
-type handler[Req, Res any] struct {
+type route[Req, Res any] struct {
 	meta Meta
 }
 
-func New[Req, Res any](method, path string, h HandlerFunc[Req, Res]) Handler {
-	return newHandler[Req, Res](method, path, build(h))
+func New[Req, Res any](method, path string, h HandlerFunc[Req, Res]) Route {
+	return newRoute[Req, Res](method, path, build(h))
 }
 
-func newHandler[Req, Res any](method, path string, h fiber.Handler) Handler {
-	return &handler[Req, Res]{
+func newRoute[Req, Res any](method, path string, h fiber.Handler) Route {
+	return &route[Req, Res]{
 		meta: Meta{
 			Method: method,
 			Path:   path,
@@ -39,21 +39,21 @@ func newHandler[Req, Res any](method, path string, h fiber.Handler) Handler {
 	}
 }
 
-func (h *handler[Req, Res]) AddMiddlewares(mws ...fiber.Handler) Handler {
+func (h *route[Req, Res]) AddMiddlewares(mws ...fiber.Handler) Route {
 	h.meta.Middlewares = append(h.meta.Middlewares, mws...)
 	return h
 }
 
-func (h *handler[Req, Res]) Meta() Meta {
+func (h *route[Req, Res]) Meta() Meta {
 	return h.meta
 }
 
-func (h *handler[Req, Res]) Desc(d string) Handler {
+func (h *route[Req, Res]) Desc(d string) Route {
 	h.meta.Desc = d
 	return h
 }
 
-func (h *handler[Req, Res]) Name(d string) Handler {
+func (h *route[Req, Res]) Name(d string) Route {
 	h.meta.Name = d
 	return h
 }
