@@ -19,6 +19,7 @@ func Module() *module.Module {
 		asDriverWrapper.Grouper(),
 		asRoundTripperWrapper.Grouper(),
 		buildRoundTripperWrapper,
+		withCtxBinder,
 	)
 
 	m.AddProvideHook(
