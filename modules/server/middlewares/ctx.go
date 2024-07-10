@@ -33,5 +33,6 @@ func createContext(c *fiber.Ctx) context.Context {
 		CorrelationId: c.Get(ctxvaluer.CorrelationIdKey, uuid.NewString()),
 		ExecutorUser:  c.Get(ctxvaluer.ExecutorUserKey),
 		AgentName:     c.Get(ctxvaluer.AgentNameKey, ""),
+		Owner:         c.Get(ctxvaluer.OwnerKey, ""),
 	})
 }

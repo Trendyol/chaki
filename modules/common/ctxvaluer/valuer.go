@@ -13,6 +13,7 @@ const (
 	TraceIdKey       = "trace-id"
 	SpanIdKey        = "span-id"
 	AgentNameKey     = "x-agent-name"
+	OwnerKey         = "x-owner"
 )
 
 var (
@@ -21,12 +22,14 @@ var (
 	TraceId       = appctx.NewValuer[string](TraceIdKey)
 	SpanId        = appctx.NewValuer[string](SpanIdKey)
 	AgentName     = appctx.NewValuer[string](AgentNameKey)
+	Owner         = appctx.NewValuer[string](OwnerKey)
 )
 
 type CreateParams struct {
 	CorrelationId string
 	ExecutorUser  string
 	AgentName     string
+	Owner         string
 }
 
 func CreateBaseTaskContext(parent context.Context, params CreateParams) context.Context {
@@ -34,11 +37,13 @@ func CreateBaseTaskContext(parent context.Context, params CreateParams) context.
 	ctx = CorrelationId.Set(ctx, params.CorrelationId)
 	ctx = ExecutorUser.Set(ctx, params.ExecutorUser)
 	ctx = AgentName.Set(ctx, params.AgentName)
+	ctx = Owner.Set(ctx, params.Owner)
 
 	l := logger.New().With(
 		zap.String(CorrelationIdKey, params.CorrelationId),
 		zap.String(ExecutorUserKey, params.ExecutorUser),
 		zap.String(AgentNameKey, params.AgentName),
+		zap.String(OwnerKey, params.Owner),
 	)
 
 	return logger.WithLogger(ctx, l)
