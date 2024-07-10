@@ -1,0 +1,5 @@
+server:
+  cors:
+    # to be able to use wildcard, we need to declare it between double quotes.
+    allowedOrigins: "*"
+    allowCredentials: false

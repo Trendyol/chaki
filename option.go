@@ -41,7 +41,7 @@ func (wo withOption) Apply(opts *options) {
 	wo(opts)
 }
 
-func WithTimeot(t time.Duration) Option {
+func WithTimeout(t time.Duration) Option {
 	return withOption(func(o *options) {
 		o.timeout = t
 	})
