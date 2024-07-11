@@ -2,6 +2,14 @@ package response
 
 import "github.com/Trendyol/chaki/modules/server/validation"
 
+type Responser interface {
+	ToResponse() any
+}
+
+type Statuser interface {
+	Status() int
+}
+
 type Response[T any] struct {
 	Success       bool `json:"success"`
 	Data          T    `json:"data"`
