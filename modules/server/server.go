@@ -74,7 +74,7 @@ func OfController(ct controller.Controller) *Server {
 	return s
 }
 
-func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.FiberAppWrapper, groups []common.MiddlewareGroup) *fiber.App {
+func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.FiberAppWrapper, groups []common.MiddlewareGroup, eh fiber.ErrorHandler) *fiber.App {
 	setDefaultFiberConfigs(cfg)
 	serverCfg := cfg.Of("server")
 
@@ -83,7 +83,7 @@ func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.Fib
 		ReadBufferSize: serverCfg.GetInt("readbuffersize"),
 		ReadTimeout:    serverCfg.GetDuration("readtimeout"),
 		WriteTimeout:   serverCfg.GetDuration("writetimeout"),
-		ErrorHandler:   middlewares.ErrHandler,
+		ErrorHandler:   eh,
 	})
 
 	if serverCfg.Exists("cors") {
