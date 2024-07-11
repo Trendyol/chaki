@@ -12,7 +12,7 @@ type Statuser interface {
 
 type Response[T any] struct {
 	Success       bool `json:"success"`
-	Data          T    `json:"data"`
+	Data          T    `json:"data,omitempty"`
 	Page          *int `json:"page,omitempty"`
 	Size          *int `json:"size,omitempty"`
 	TotalElements *int `json:"totalElements,omitempty"`

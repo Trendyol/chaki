@@ -9,15 +9,17 @@ import (
 	"go.uber.org/zap"
 )
 
-func ErrHandler(c *fiber.Ctx, err error) error {
-	logger.From(c.UserContext()).Error(
-		"err handler log",
-		zap.Error(err),
-	)
+func ErrHandler() fiber.ErrorHandler {
+	return func(c *fiber.Ctx, err error) error {
+		logger.From(c.UserContext()).Error(
+			"err handler log",
+			zap.Error(err),
+		)
 
-	return c.
-		Status(getCodeFromErr(err)).
-		JSON(response.Error(err.Error(), getValidationErrs(err)...))
+		return c.
+			Status(getCodeFromErr(err)).
+			JSON(response.Error(err.Error(), getValidationErrs(err)...))
+	}
 }
 
 func getValidationErrs(err error) []validation.FieldError {
