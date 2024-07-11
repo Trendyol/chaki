@@ -43,13 +43,16 @@ func (s *Server) registerRoutes() {
 
 		// For each handler.Meta
 		slc.ForEach(metas, func(m route.Meta) {
-			handlers := []fiber.Handler{m.Func}
+			handlers := []fiber.Handler{}
 
 			// Controller's middlewares
 			handlers = append(handlers, r.mws...)
 
 			// Route's middlewares
 			handlers = append(handlers, m.Middlewares...)
+
+			// Main Handler
+			handlers = append(handlers, m.Func)
 			s.app.Add(m.Method, m.Path, handlers...)
 		})
 	})

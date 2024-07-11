@@ -17,6 +17,7 @@ type Route interface {
 	Meta() Meta
 	Desc(s string) Route
 	Name(s string) Route
+	AddMiddlewares(mws ...fiber.Handler) Route
 }
 
 type route[Req, Res any] struct {
