@@ -23,8 +23,8 @@ type route[Req, Res any] struct {
 	meta Meta
 }
 
-func New[Req, Res any](method, path string, h HandlerFunc[Req, Res]) Route {
-	return newRoute[Req, Res](method, path, build(h))
+func New[Req, Res any](method, path string, h HandlerFunc[Req, Res], ds ...int) Route {
+	return newRoute[Req, Res](method, path, build(h, ds...))
 }
 
 func newRoute[Req, Res any](method, path string, h fiber.Handler) Route {
@@ -108,24 +108,14 @@ func build[Req, Res any](f HandlerFunc[Req, Res], defaultStatus ...int) fiber.Ha
 			status = ds
 		)
 
-		if rp, ok := any(res).(responser); ok {
+		if rp, ok := any(res).(response.Responser); ok {
 			resp = rp.ToResponse()
-		} else {
-			resp = response.Success(res)
 		}
 
-		if st, ok := any(res).(statuser); ok {
+		if st, ok := any(res).(response.Statuser); ok {
 			status = st.Status()
 		}
 
 		return c.Status(status).JSON(resp)
 	}
-}
-
-type responser interface {
-	ToResponse() any
-}
-
-type statuser interface {
-	Status() int
 }
