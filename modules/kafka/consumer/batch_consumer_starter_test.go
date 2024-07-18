@@ -8,13 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_NewStarter(t *testing.T) {
+func Test_NewBatchStarter(t *testing.T) {
 	t.Run("it shouold build consumer with only consumer fn", func(t *testing.T) {
 		// Given
 		var (
 			cfg    = config.NewConfig(viper.New(), nil)
 			doneCh = make(chan bool, 1)
-			c      = NewFn("example", func(m *Message) error {
+			c      = NewBatchConsumerFn("example", func(m Messages) error {
 				doneCh <- true
 				return nil
 			})
@@ -24,14 +24,17 @@ func Test_NewStarter(t *testing.T) {
 			"brokers": "text.kafka.com",
 			"topic":   "topic-topic",
 			"groupId": "gorup-id",
+			"batchConfiguration": map[string]any{
+				"messageGroupLimit": "2",
+			},
 		})
 
 		// When
-		starter, err := NewStarter(cfg, c, nil)
-		singleStarter, ok := starter.(*SingleConsumerStarter)
+		starter, err := NewBatchConsumerStarter(cfg, c, nil)
+		batchStarter, ok := starter.(*BatchConsumerStarter)
 		assert.True(t, ok)
 
-		consumerErr := singleStarter.consumerFn(nil)
+		consumerErr := batchStarter.consumerFn(nil)
 
 		// Then
 		assert.NoError(t, err)
@@ -44,21 +47,21 @@ func Test_NewStarter(t *testing.T) {
 		var (
 			cfg       = config.NewConfig(viper.New(), nil)
 			resultArr []int
-			c         = NewFn("example", func(m *Message) error {
+			c         = NewBatchConsumerFn("example", func(m Messages) error {
 				resultArr = append(resultArr, 4)
 				return nil
 			})
 
-			interceptors = []Interceptor{
-				InterceptorFunc(func(msg *Message, next ConsumeFn) error {
+			interceptors = []BatchConsumerInterceptor{
+				BatchConsumerInterceptorFunc(func(msg []*Message, next BatchConsumeFn) error {
 					resultArr = append(resultArr, 1)
 					return next(msg)
 				}),
-				InterceptorFunc(func(msg *Message, next ConsumeFn) error {
+				BatchConsumerInterceptorFunc(func(msg []*Message, next BatchConsumeFn) error {
 					resultArr = append(resultArr, 2)
 					return next(msg)
 				}),
-				InterceptorFunc(func(msg *Message, next ConsumeFn) error {
+				BatchConsumerInterceptorFunc(func(msg []*Message, next BatchConsumeFn) error {
 					resultArr = append(resultArr, 3)
 					return next(msg)
 				}),
@@ -69,15 +72,18 @@ func Test_NewStarter(t *testing.T) {
 			"brokers": "text.kafka.com",
 			"topic":   "topic-topic",
 			"groupId": "gorup-id",
+			"batchConfiguration": map[string]any{
+				"messageGroupLimit": "2",
+			},
 		})
 
 		// When
-		starter, err := NewStarter(cfg, c, interceptors)
+		starter, err := NewBatchConsumerStarter(cfg, c, interceptors)
 
-		singleStarter, ok := starter.(*SingleConsumerStarter)
+		batchStarter, ok := starter.(*BatchConsumerStarter)
 		assert.True(t, ok)
 
-		consumerErr := singleStarter.consumerFn(nil)
+		consumerErr := batchStarter.consumerFn(nil)
 
 		// Then
 		assert.NoError(t, err)

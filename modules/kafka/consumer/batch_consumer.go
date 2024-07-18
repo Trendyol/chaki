@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	Messages       = []kafkalib.Message
+	Messages       = []*kafkalib.Message
 	BatchConsumeFn = kafkalib.BatchConsumeFn
 
 	BatchConsumer interface {
