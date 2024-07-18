@@ -28,7 +28,7 @@ func Test_NewStarter(t *testing.T) {
 
 		// When
 		starter, err := NewStarter(cfg, c, nil)
-		consumerErr := starter.consumerFn(nil)
+		consumerErr := starter.Start()
 
 		// Then
 		assert.NoError(t, err)
@@ -69,8 +69,8 @@ func Test_NewStarter(t *testing.T) {
 		})
 
 		// When
-		starter, err := NewStarter(cfg, c, interceptors)
-		consumerErr := starter.consumerFn(nil)
+		_, err := NewStarter(cfg, c, interceptors)
+		consumerErr := c.Consume(nil)
 
 		// Then
 		assert.NoError(t, err)

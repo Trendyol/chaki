@@ -8,4 +8,11 @@ kafka:
       brokers: "staging-confluent-broker-01-earth.trendyol.com:9092"
       topic: eren-test-2
       groupId: example.groupId
-    
+      retryEnabled: true
+      retryConfiguration:
+        startTimeCron: "*/1 * * * *"
+        topic: "eren-test-2-retry"
+        deadLetterTopic: "eren-test-2-error"
+        brokers: "staging-confluent-broker-01-earth.trendyol.com:9092"
+        maxRetry: 3
+        workDuration: 60

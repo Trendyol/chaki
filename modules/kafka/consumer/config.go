@@ -10,13 +10,36 @@ import (
 )
 
 type consumerConfig struct {
-	Brokers  string
-	GroupID  string
-	Topic    string
-	ClientID string
-	Reader   readerConfig
-	SASL     *saslConfig
-	TLS      *tlsConfig
+	Brokers              string
+	GroupID              string
+	Topic                string
+	ClientID             string
+	Reader               readerConfig
+	SASL                 *saslConfig
+	TLS                  *tlsConfig
+	Rack                 string
+	Concurrency          int
+	RetryEnabled         bool
+	TransactionalRetry   bool
+	MessageGroupDuration int
+	RetryConfiguration   RetryConfiguration
+	BatchConfiguration   *BatchConfiguration
+}
+
+type BatchConfiguration struct {
+	MessageGroupLimit         int
+	MessageGroupByteSizeLimit any
+}
+
+type RetryConfiguration struct {
+	ClientID        string
+	StartTimeCron   string
+	Topic           string
+	DeadLetterTopic string
+	Rack            string
+	Brokers         []string
+	MaxRetry        int
+	WorkDuration    int
 }
 
 type readerConfig struct {
@@ -55,15 +78,19 @@ type saslConfig struct {
 	Password string
 }
 
-func buildLibConfig(cfg *config.Config, consumer Consumer) (*kafkalib.ConsumerConfig, error) {
-	kcfg, err := config.ToStruct[consumerConfig](cfg.Of("kafka.consumer"), consumer.Name())
+func buildLibConfig(cfg *config.Config, consumerName string) (*kafkalib.ConsumerConfig, error) {
+	kcfg, err := config.ToStruct[consumerConfig](cfg.Of("kafka.consumer"), consumerName)
 	if err != nil {
 		return nil, err
 	}
 
 	libcfg := &kafkalib.ConsumerConfig{
-		ClientID:  kcfg.ClientID,
-		ConsumeFn: consumer.Consume,
+		ClientID:             kcfg.ClientID,
+		Rack:                 kcfg.Rack,
+		Concurrency:          kcfg.Concurrency,
+		RetryEnabled:         kcfg.RetryEnabled,
+		TransactionalRetry:   kafkalib.NewBoolPtr(kcfg.TransactionalRetry),
+		MessageGroupDuration: time.Duration(kcfg.MessageGroupDuration) * time.Millisecond,
 		Reader: kafkalib.ReaderConfig{
 			Brokers:                splitByComma(kcfg.Brokers),
 			Topic:                  kcfg.Topic,
@@ -91,6 +118,26 @@ func buildLibConfig(cfg *config.Config, consumer Consumer) (*kafkalib.ConsumerCo
 			MaxAttempts:            kcfg.Reader.MaxAttempts,
 			OffsetOutOfRangeError:  kcfg.Reader.OffsetOutOfRangeError,
 		},
+	}
+
+	if kcfg.RetryEnabled {
+		libcfg.RetryConfiguration = kafkalib.RetryConfiguration{
+			ClientID:        kcfg.RetryConfiguration.ClientID,
+			StartTimeCron:   kcfg.RetryConfiguration.StartTimeCron,
+			Topic:           kcfg.RetryConfiguration.Topic,
+			DeadLetterTopic: kcfg.RetryConfiguration.DeadLetterTopic,
+			Rack:            kcfg.RetryConfiguration.Rack,
+			Brokers:         kcfg.RetryConfiguration.Brokers,
+			MaxRetry:        kcfg.RetryConfiguration.MaxRetry,
+			WorkDuration:    time.Duration(kcfg.RetryConfiguration.WorkDuration) * time.Second,
+		}
+	}
+
+	if kcfg.BatchConfiguration != nil {
+		libcfg.BatchConfiguration = &kafkalib.BatchConfiguration{
+			MessageGroupLimit:         kcfg.BatchConfiguration.MessageGroupLimit,
+			MessageGroupByteSizeLimit: kcfg.BatchConfiguration.MessageGroupByteSizeLimit,
+		}
 	}
 
 	if kcfg.SASL != nil {
