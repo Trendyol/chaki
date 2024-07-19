@@ -1,0 +1,11 @@
+kafka:
+  consumer:
+    example1:
+      brokers: "address1,address2"
+      topic: example.1.topic
+      groupId: example.groupId
+    example2:
+      brokers: "address1,address2"
+      topic: example.2.topic
+      groupId: example.groupId
+    
