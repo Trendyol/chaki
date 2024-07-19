@@ -8,4 +8,5 @@ kafka:
       brokers: "broker,broker"
       topic: test-2
       groupId: example.groupId
-    
+      batchConfiguration:
+        messageGroupLimit: 2

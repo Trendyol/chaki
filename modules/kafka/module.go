@@ -13,9 +13,11 @@ import (
 const ModuleName = "chaki-kafka"
 
 var (
-	asConsumer            = as.Interface[consumer.Consumer]("kafkaconsumers")
-	asConsumerInterceptor = as.Interface[consumer.Interceptor]("consumerinterceptors")
-	asProducerInterceptor = as.Interface[producer.Interceptor]("producerinterceptors")
+	asConsumer                 = as.Interface[consumer.Consumer]("kafkaconsumers")
+	asBatchConsumer            = as.Interface[consumer.BatchConsumer]("kafkabatchconsumers")
+	asConsumerInterceptor      = as.Interface[consumer.Interceptor]("consumerinterceptors")
+	asBatchConsumerInterceptor = as.Interface[consumer.BatchConsumerInterceptor]("batchconsumerinterceptors")
+	asProducerInterceptor      = as.Interface[producer.Interceptor]("producerinterceptors")
 )
 
 func Module() *module.Module {
@@ -25,21 +27,31 @@ func Module() *module.Module {
 
 	m.Invoke(runConsumers)
 
-	m.AddAsser(asConsumer, asConsumerInterceptor, asProducerInterceptor)
+	m.AddAsser(asConsumer, asBatchConsumer, asConsumerInterceptor, asBatchConsumerInterceptor, asProducerInterceptor)
 
 	return m
 }
 
 func runConsumers(
 	consumers []consumer.Consumer,
+	batchConsumers []consumer.BatchConsumer,
 	interceptors []consumer.Interceptor,
+	batchConsumerInterceptors []consumer.BatchConsumerInterceptor,
 	cfg *config.Config,
 	lc fx.Lifecycle,
 	eg *errgroup.Group,
 ) error {
-	starters := make([]*consumer.Starter, len(consumers))
+	starters := make([]consumer.Starter, len(consumers)+len(batchConsumers))
 	for i, c := range consumers {
 		s, err := consumer.NewStarter(cfg, c, interceptors)
+		if err != nil {
+			return err
+		}
+		starters[i] = s
+	}
+
+	for i, bc := range batchConsumers {
+		s, err := consumer.NewBatchConsumerStarter(cfg, bc, batchConsumerInterceptors)
 		if err != nil {
 			return err
 		}

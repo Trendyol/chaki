@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/logger"
 	"github.com/Trendyol/chaki/modules/kafka"
@@ -11,7 +13,7 @@ func main() {
 	app := chaki.New()
 
 	app.WithOption(
-		chaki.WithConfigPath("example/onlyconsumer/config.yaml"),
+		chaki.WithConfigPath("example/retryable-consumer/config.yaml"),
 	)
 
 	app.Use(
@@ -39,8 +41,8 @@ func NewExample2Consumer() consumer.Consumer {
 }
 
 func (c *example2Consumer) Consume(msg *consumer.Message) error {
-	logger.From(msg.Context).Info("message arrived")
-	return nil
+	logger.From(msg.Context).Info(fmt.Sprintf("message arrived. message: %+v", msg))
+	return errors.New("error")
 }
 
 func NewExampleConsumer() consumer.Consumer {
