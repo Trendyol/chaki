@@ -1,0 +1,12 @@
+kafka:
+  consumer:
+    example1:
+      brokers: "broker,broker"
+      topic: test
+      groupId: example.groupId
+    example2:
+      brokers: "broker,broker"
+      topic: test-2
+      groupId: example.groupId
+      batchConfiguration:
+        messageGroupLimit: 2

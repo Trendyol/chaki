@@ -43,13 +43,16 @@ func (s *Server) registerRoutes() {
 
 		// For each handler.Meta
 		slc.ForEach(metas, func(m route.Meta) {
-			handlers := []fiber.Handler{m.Func}
+			handlers := []fiber.Handler{}
 
 			// Controller's middlewares
 			handlers = append(handlers, r.mws...)
 
 			// Route's middlewares
 			handlers = append(handlers, m.Middlewares...)
+
+			// Main Handler
+			handlers = append(handlers, m.Func)
 			s.app.Add(m.Method, m.Path, handlers...)
 		})
 	})
@@ -71,7 +74,7 @@ func OfController(ct controller.Controller) *Server {
 	return s
 }
 
-func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.FiberAppWrapper, groups []common.MiddlewareGroup) *fiber.App {
+func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.FiberAppWrapper, groups []common.MiddlewareGroup, eh fiber.ErrorHandler) *fiber.App {
 	setDefaultFiberConfigs(cfg)
 	serverCfg := cfg.Of("server")
 
@@ -80,7 +83,7 @@ func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.Fib
 		ReadBufferSize: serverCfg.GetInt("readbuffersize"),
 		ReadTimeout:    serverCfg.GetDuration("readtimeout"),
 		WriteTimeout:   serverCfg.GetDuration("writetimeout"),
-		ErrorHandler:   middlewares.ErrHandler,
+		ErrorHandler:   eh,
 	})
 
 	if serverCfg.Exists("cors") {

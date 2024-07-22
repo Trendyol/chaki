@@ -1,0 +1,18 @@
+kafka:
+  consumer:
+    example1:
+      brokers: "broker,broker"
+      topic: test
+      groupId: example.groupId
+    example2:
+      brokers: "broker,broker"
+      topic: test-2
+      groupId: example.groupId
+      retryEnabled: true
+      retryConfiguration:
+        startTimeCron: "*/1 * * * *"
+        topic: "test-2-retry"
+        deadLetterTopic: "test-2-error"
+        brokers: "broker,broker"
+        maxRetry: 3
+        workDuration: 60
