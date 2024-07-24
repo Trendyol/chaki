@@ -1,4 +1,4 @@
-package http
+package client
 
 import (
 	"fmt"
@@ -6,10 +6,11 @@ import (
 	"time"
 )
 
-type CircuitFunc func() error
+type circuitFunc func() error
+type CircuitErrorFunc func(error) error
 type CircuitErrorFilter func(error) (bool, error)
 
-type CircuitConfig struct {
+type circuitConfig struct {
 	Name                   string
 	Timeout                int
 	MaxConcurrentRequests  int
@@ -19,11 +20,11 @@ type CircuitConfig struct {
 	Commands               []string
 }
 
-type Circuit struct {
-	config CircuitConfig
+type circuit struct {
+	config *circuitConfig
 }
 
-func NewCircuit(c CircuitConfig) *Circuit {
+func newCircuit(c *circuitConfig) *circuit {
 	hystrixConfig := hystrix.CommandConfig{
 		Timeout:                c.Timeout,
 		MaxConcurrentRequests:  c.MaxConcurrentRequests,
@@ -36,12 +37,12 @@ func NewCircuit(c CircuitConfig) *Circuit {
 		hystrix.ConfigureCommand(fmt.Sprintf("%s:%s", c.Name, command), hystrixConfig)
 	}
 
-	return &Circuit{
+	return &circuit{
 		config: c,
 	}
 }
 
-func (c *Circuit) Do(command string, fu CircuitFunc, fallback func(error) error, fi ...CircuitErrorFilter) error {
+func (c *circuit) do(command string, fu circuitFunc, fallback func(error) error, fi ...CircuitErrorFilter) error {
 	var e error
 	var ok bool
 
@@ -75,7 +76,7 @@ func (c *Circuit) Do(command string, fu CircuitFunc, fallback func(error) error,
 	return nil
 }
 
-func (c *Circuit) DoR(command string, fu CircuitFunc, fallback func(error) error, retry int, delay time.Duration, fi ...CircuitErrorFilter) error {
+func (c *circuit) doR(command string, fu circuitFunc, fallback func(error) error, retry int, delay time.Duration, fi ...CircuitErrorFilter) error {
 	var e error
 	var ok bool
 
@@ -117,4 +118,8 @@ func (c *Circuit) DoR(command string, fu CircuitFunc, fallback func(error) error
 	}
 
 	return nil
+}
+
+func defaultCircuitErrorFunc(err error) error {
+	return err
 }
