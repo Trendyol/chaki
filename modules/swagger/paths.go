@@ -3,6 +3,8 @@ package swagger
 import (
 	"reflect"
 	"strings"
+
+	"github.com/Trendyol/chaki/util/slc"
 )
 
 func buildPaths(eds []EndpointDef) m {
@@ -25,7 +27,7 @@ func buildPaths(eds []EndpointDef) m {
 			"externalDocs": m{},
 		}
 
-		if pr := getParamters(ed.RequestType); pr != nil {
+		if pr := getParameters(ed.RequestType); pr != nil {
 			desc["parameters"] = pr
 		}
 
@@ -52,7 +54,7 @@ func buildPaths(eds []EndpointDef) m {
 	return p
 }
 
-func getParamters(t reflect.Type) []m {
+func getParameters(t reflect.Type) []m {
 	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
@@ -69,7 +71,12 @@ func getParamters(t reflect.Type) []m {
 	for i := 0; i < t.NumField(); i++ {
 		f := t.Field(i)
 
-		required := f.Tag.Get("required") == "true"
+		required := false
+		if vts, ok := f.Tag.Lookup("validate"); ok {
+			if slc.Contains(strings.Split(vts, ","), "required") {
+				required = true
+			}
+		}
 
 		if n := f.Tag.Get("param"); n != "" {
 			pi := getPropertyField(f.Type)
