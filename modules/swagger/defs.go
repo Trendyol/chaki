@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Trendyol/chaki/internal/typlect"
+	"github.com/Trendyol/chaki/util/slc"
 )
 
 func buildDefinitions(eds []EndpointDef) m {
@@ -43,9 +44,7 @@ func buildModelDefinition(defs m, t reflect.Type, isReq bool) {
 			ft = f.Type
 		)
 
-		//TODO: pick required fields to `smr` list
-
-		// build sub type definitions
+		// build subtype definitions
 		if ft != typlect.TypeTime && ft.Kind() == reflect.Struct {
 			buildModelDefinition(defs, ft, isReq)
 		}
@@ -56,6 +55,12 @@ func buildModelDefinition(defs m, t reflect.Type, isReq bool) {
 
 		if !isReq || f.Tag.Get("json") != "" {
 			smp[getFieldName(f)] = getPropertyField(f.Type)
+
+			if vts, ok := f.Tag.Lookup("validate"); isReq && ok {
+				if slc.Contains(strings.Split(vts, ","), "required") {
+					smr = append(smr, getFieldName(f))
+				}
+			}
 		}
 	}
 
