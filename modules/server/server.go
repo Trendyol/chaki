@@ -7,6 +7,7 @@ import (
 	"github.com/Trendyol/chaki/modules/server/controller"
 	"github.com/Trendyol/chaki/modules/server/middlewares"
 	"github.com/Trendyol/chaki/modules/server/route"
+	"github.com/Trendyol/chaki/modules/swagger"
 	"github.com/Trendyol/chaki/util/slc"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
@@ -124,4 +125,10 @@ func setDefaultFiberConfigs(cfg *config.Config) {
 	serverCfg.SetDefault("healthcheck.endpoints.readiness", "/__monitor/ready")
 	serverCfg.SetDefault("readtimeout", "10s")
 	serverCfg.SetDefault("writetimeout", "10s")
+}
+
+func getSwaggerDefs(rs []*registry) []swagger.EndpointDef {
+	return slc.FlatMap(rs, func(r *registry) []swagger.EndpointDef {
+		return r.SwaggerDefs()
+	})
 }
