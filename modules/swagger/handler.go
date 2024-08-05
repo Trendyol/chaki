@@ -25,10 +25,10 @@ func fiberWrapper(docs Docs) common.FiberAppWrapper {
 func newRedirectMiddleware() fiber.Handler {
 	return redirect.New(redirect.Config{
 		Rules: map[string]string{
-			"/":                       "/swagger/index.html",
-			"/swagger":                "/swagger/index.html",
-			"/swagger.json":           "/swagger/docs.json",
-			"swagger/v1/swagger.json": "/swagger/docs.json",
+			"/":                        "/swagger/index.html",
+			"/swagger":                 "/swagger/index.html",
+			"/swagger.json":            "/swagger/docs.json",
+			"/swagger/v1/swagger.json": "/swagger/docs.json",
 		},
 	})
 }
