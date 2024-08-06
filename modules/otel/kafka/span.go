@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/Trendyol/chaki/modules/kafka/consumer"
+	"github.com/Trendyol/chaki/modules/kafka/producer"
 	"github.com/Trendyol/chaki/modules/otel/common"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
@@ -25,14 +26,23 @@ func newSpanBuilder(tp trace.TracerProvider, tmp propagation.TextMapPropagator) 
 }
 
 func (sb *spanBuilder) BuildConsumerSpan(msg *consumer.Message) (context.Context, trace.Span) {
-	return sb.build(msg, trace.SpanKindConsumer)
+	return sb.buildMessageSpan(msg, trace.SpanKindConsumer)
 }
 
-func (sb *spanBuilder) BuildProducerSpan(msg *consumer.Message) (context.Context, trace.Span) {
-	return sb.build(msg, trace.SpanKindProducer)
+func (sb *spanBuilder) BuildProducerSpan(parent context.Context, msgs []producer.Message) (context.Context, trace.Span) {
+	tracer := sb.tp.Tracer(tracerName)
+
+	ctx, span := tracer.Start(parent, "producing message", trace.WithSpanKind(trace.SpanKindProducer))
+
+	for i := range msgs {
+		carrier := NewMessageCarrier(&msgs[i])
+		sb.tmp.Inject(ctx, carrier)
+	}
+
+	return ctx, span
 }
 
-func (sb *spanBuilder) build(msg *consumer.Message, kind trace.SpanKind) (context.Context, trace.Span) {
+func (sb *spanBuilder) buildMessageSpan(msg *consumer.Message, kind trace.SpanKind) (context.Context, trace.Span) {
 	var (
 		tracer        = sb.tp.Tracer(tracerName)
 		carrier       = NewMessageCarrier(msg)
