@@ -1,0 +1,98 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,500;1,400&family=Source+Sans+Pro:ital,wght@0,400;0,600;1,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap");
+
+.sidebar {
+  background-color: whitesmoke;
+  box-shadow: 1px 0px 55px 1px rgba (0, 0, 0, 0.308);
+  width: 19rem;
+}
+
+.intro-header {
+  font-size: 6rem !important;
+  letter-spacing: 12px;
+}
+
+.scroll-icon {
+  position: absolute;
+  bottom: 0;
+}
+
+.cover {
+  position: relative;
+  z-index: 0;
+  box-shadow: 1px 0px 55px 1px rgba(0, 0, 0, 0.308);
+}
+
+h1.cover-title {
+  font-size: 8rem !important;
+  letter-spacing: 2rem !important;
+  transform: translateX(1.5rem);
+}
+.app-name-link {
+  font-size: 2.1rem !important;
+  letter-spacing: 0.4rem !important;
+}
+p.cover-subtitle {
+  font-size: 2rem !important;
+  letter-spacing: 0.4rem !important;
+  opacity: 0.5;
+  transform: translateY(-1.5rem);
+}
+
+body {
+  font-family: "Source Sans Pro", "Helvetica Neue", Arial, sans-serif;
+  font-size: 1.07rem;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600 !important;
+}
+
+.sidebar li a {
+  transition: 200ms;
+  padding-left: 1rem;
+}
+
+.markdown-section pre > code * {
+  font-family: "Roboto Mono", monospace;
+}
+
+.cover-main .buttons {
+  width: 100%;
+}
+
+.cover-main .buttons a {
+  font-weight: 100;
+  letter-spacing: 0.1rem;
+  position: relative;
+  display: inline-block;
+  font-size: 2rem;
+  color: var(--theme-color);
+  margin: 0.4rem 0.4rem;
+  padding: 0.3rem 1rem;
+  transition: 300ms;
+}
+
+.cover-main .buttons a:last-child {
+  font-size: 1.4rem;
+  color: #34495e;
+  opacity: 0.4;
+}
+
+.cover-main .buttons a:last-child:hover {
+  text-decoration: underline;
+  opacity: 1;
+}
+
+.cover-main .buttons a:first-child {
+  border: 2px solid var(--theme-color);
+  border-radius: 6px;
+}
+
+.cover-main .buttons a:first-child:hover {
+  color: white;
+  background-color: var(--theme-color);
+  box-shadow: 0 5px 16px rgba(229, 9, 20, 0.3);
+}
