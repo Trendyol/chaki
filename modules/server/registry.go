@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/Trendyol/chaki/modules/server/controller"
 	"github.com/Trendyol/chaki/modules/server/route"
+	"github.com/Trendyol/chaki/modules/swagger"
 	"github.com/Trendyol/chaki/util/slc"
 	"github.com/gofiber/fiber/v2"
 	"net/url"
@@ -45,4 +46,20 @@ func (r *registry) toMeta(h route.Route) route.Meta {
 	}
 	m.Path = r.parsePath(m.Path)
 	return m
+}
+
+func (r *registry) SwaggerDefs() []swagger.EndpointDef {
+	metas := slc.Map(r.routes, r.toMeta)
+	return slc.Map(metas, r.toSwagDefinition)
+}
+
+func (r *registry) toSwagDefinition(m route.Meta) swagger.EndpointDef {
+	return swagger.EndpointDef{
+		RequestType:  m.Req,
+		ResponseType: m.Res,
+		Group:        r.name,
+		Name:         m.Name,
+		Endpoint:     m.Path,
+		Method:       m.Method,
+	}
 }
