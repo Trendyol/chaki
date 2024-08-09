@@ -3,6 +3,8 @@
   <img src="./logo.png" width=256 />
 </p>
 
+![golang ci lint](https://github.com/Trendyol/chaki/actions/workflows/golangci-lint.yml/badge.svg) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 # Chaki
 
 Chaki is an application builder framework designed to simplify the development process in Go by abstracting processes such as tracing, logging, Kafka integration, and Swagger documentation. It reduces the amount of boilerplate code, enhancing developer experience and productivity. Chaki handles complex tasks for you, allowing you to focus more on the core functionalities of your application.
