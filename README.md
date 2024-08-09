@@ -3,7 +3,11 @@
   <img src="./logo.png" width=256 />
 </p>
 
-![golang ci lint](https://github.com/Trendyol/chaki/actions/workflows/golangci-lint.yml/badge.svg) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<div align="center"> 
+<img src="https://github.com/Trendyol/chaki/actions/workflows/golangci-lint.yml/badge.svg" />
+<img src="https://img.shields.io/badge/License-MIT-yellow.svg">
+</div>
+
 
 # Chaki
 
