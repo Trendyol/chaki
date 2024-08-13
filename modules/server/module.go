@@ -26,6 +26,9 @@ func Module() *module.Module {
 		// create registries
 		asController.Handler(parseControllers),
 
+		// swagger defs
+		getSwaggerDefs,
+
 		// middlewares - group
 		asMiddleware.Grouper(),
 
