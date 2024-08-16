@@ -11,4 +11,4 @@ Chaki is an application builder framework designed to simplify the development p
 
 ## Examples
 
-Check out the [examples](https://github.com/Trendyol/chaki/tree/master/examples) to see chaki in use
+Check out the [examples](https://github.com/Trendyol/chaki/tree/master/example) to see chaki in use

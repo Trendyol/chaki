@@ -21,7 +21,7 @@ Using Chaki, you can:
 
 ## Usage
 
-A simple usage example is provided below. For more detailed examples, please refer to the [examples](https://github.com/Trendyol/chaki) directory.
+A simple usage example is provided below. For more detailed examples, please refer to the [examples](https://github.com/Trendyol/chaki/example) directory.
 
 ```go
 func main() {
