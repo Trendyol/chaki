@@ -21,10 +21,6 @@ func ById[T any](id T) Query {
 	return func(d *gorm.DB) *gorm.DB { return d.Where(id) }
 }
 
-func ByIds[T any](ids []T) Query {
-	return byMatch("id", "IN", ids)
-}
-
 func ByModel(m any) Query {
 	return func(d *gorm.DB) *gorm.DB {
 		return d.Where(m)
