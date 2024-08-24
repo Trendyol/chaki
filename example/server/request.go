@@ -1,8 +1,9 @@
 package main
 
 type GreetWithBodyRequest struct {
-	Text        string `json:"text" validate:"required,min=3,max=100,textValidator"`
-	RepeatTimes int    `json:"repeatTimes" validate:"required,gte=1,lte=5"`
+	Text           string `json:"text" validate:""`
+	RepeatTimes    int    `json:"repeatTimes" validate:"required"`
+	NecessaryParam string `query:"necessaryParam" validate:"required"`
 }
 
 type GreetWithQueryRequest struct {
