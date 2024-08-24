@@ -1,4 +1,4 @@
-package server_newrelic
+package server
 
 import (
 	"github.com/gofiber/contrib/fibernewrelic"

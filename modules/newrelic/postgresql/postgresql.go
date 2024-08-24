@@ -1,4 +1,4 @@
-package postgresql_newrelic
+package psql
 
 import "github.com/Trendyol/chaki/config"
 

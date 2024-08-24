@@ -1,4 +1,4 @@
-package kafka_newrelic
+package kafka
 
 import (
 	"github.com/Trendyol/chaki/modules/kafka/consumer"

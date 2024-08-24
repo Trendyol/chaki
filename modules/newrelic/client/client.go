@@ -1,4 +1,4 @@
-package client_newrelic
+package client
 
 import (
 	"net/http"
