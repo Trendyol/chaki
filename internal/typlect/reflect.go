@@ -98,7 +98,7 @@ func BuildCtrInvoker(ctr any, h func(v any) error) any {
 	)
 
 	return reflect.MakeFunc(ft, func(args []reflect.Value) (results []reflect.Value) {
-		h(args[0].Interface())
+		_ = h(args[0].Interface())
 
 		return []reflect.Value{reflect.Zero(errType)}
 	}).Interface()
