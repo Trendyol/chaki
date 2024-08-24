@@ -1,0 +1,10 @@
+gorm:
+  host:
+  port:
+  username:
+  password:
+
+newrelic:
+  agentenabled: true
+  appname: "server-with-newrelic"
+  licensekey: "top-secret-license-key" # optional
