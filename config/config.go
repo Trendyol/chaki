@@ -85,8 +85,16 @@ func (g *Config) GetInt(k string) int {
 	return getValueT(g.v, g.key(k), cast.ToIntE)
 }
 
+func (g *Config) GetUInt(k string) uint {
+	return getValueT(g.v, g.key(k), cast.ToUintE)
+}
+
 func (g *Config) GetInt32(k string) int32 {
 	return getValueT(g.v, g.key(k), cast.ToInt32E)
+}
+
+func (g *Config) GetUInt32(k string) uint32 {
+	return getValueT(g.v, g.key(k), cast.ToUint32E)
 }
 
 func (g *Config) GetInt64(k string) int64 {

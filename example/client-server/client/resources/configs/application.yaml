@@ -2,5 +2,36 @@ server:
   addr: ":8081"
 
 client:
-  example-client:
+  example-client-with-no-retry-and-no-circuit-breaker:
     baseUrl: "http://localhost:8082"
+
+  example-client-with-retry-and-no-circuit-breaker:
+    baseUrl: "http://localhost:8082"
+    retry:
+      enabled: true
+      attempts: 3
+      delay: "3ms"
+
+  example-client-with-retry-and-circuit-breaker:
+    baseUrl: "http://localhost:8082"
+    circuit-breaker:
+      enabled: true
+      name: "example-client-circuit-breaker"
+      maxRequests: 3
+      interval: 30
+      timeout: 30
+      consecutiveFailuresThreshold: 4
+    retry:
+      enabled: true
+      attempts: 3
+      delay: "3ms"
+
+  example-client-with-circuit-breaker-and-no-retry:
+    baseUrl: "http://localhost:8082"
+    circuit-breaker:
+      enabled: true
+      name: "example-client-circuit-breaker"
+      maxRequests: 3
+      interval: 30
+      timeout: 30
+      consecutiveFailuresThreshold: 4
