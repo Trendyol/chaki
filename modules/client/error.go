@@ -2,9 +2,12 @@ package client
 
 import (
 	"context"
+	"errors"
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
 )
+
+var ErrUnsupportedMethod = errors.New("unsupported method")
 
 type ErrDecoder func(context.Context, *resty.Response) error
 
