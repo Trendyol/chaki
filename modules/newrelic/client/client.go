@@ -3,7 +3,8 @@ package client
 import (
 	"net/http"
 
-	"github.com/Trendyol/chaki/modules/client/common"
+	"github.com/Trendyol/chaki/module"
+	nrmodule "github.com/Trendyol/chaki/modules/newrelic"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
@@ -26,8 +27,7 @@ func (t *httpRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 	return t.tr.RoundTrip(req)
 }
 
-func WithClient() common.RoundTripperWrapper {
-	return func(rt http.RoundTripper) http.RoundTripper {
-		return newRoundTripper(rt)
-	}
+func WithClient() nrmodule.Option {
+	sm := module.NewSubModule().Provide(newRoundTripper)
+	return nrmodule.WithSubModule(sm)
 }

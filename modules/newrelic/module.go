@@ -1,16 +1,25 @@
 package newrelic
 
 import (
+	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/module"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
-func Module(providers ...any) *module.Module {
-	return module.New("newrelic").Provide(
-		newNr,
-		providers,
-	)
+const ModuleName = "chaki-newrelic-module"
+
+func Module(option ...Option) *module.Module {
+	o := buildOptions(option...)
+	return module.
+		New("newrelic").
+		Provide(
+			chaki.Valuer(o),
+			newNr,
+		).
+		Merge(
+			o.subModules...,
+		)
 }
 
 func newNr(cfg *config.Config) (*newrelic.Application, error) {

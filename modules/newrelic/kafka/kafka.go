@@ -1,12 +1,16 @@
 package kafka
 
 import (
+	"github.com/Trendyol/chaki/module"
 	"github.com/Trendyol/chaki/modules/kafka/consumer"
+	nrmodule "github.com/Trendyol/chaki/modules/newrelic"
+
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
-func WithKafka() any {
-	return newKafkaInterceptor
+func WithKafka() nrmodule.Option {
+	sm := module.NewSubModule().Provide(newKafkaInterceptor)
+	return nrmodule.WithSubModule(sm)
 }
 
 type Interceptor struct {
