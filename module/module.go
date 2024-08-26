@@ -77,6 +77,8 @@ func (m *Module) AddAsser(assers ...as.Asser) *Module {
 func (m *Module) Merge(sub ...*SubModule) *Module {
 	for _, s := range sub {
 		m.Provide(s.provides...)
+		m.AddProvideHook(s.provideHooks...)
+		m.AddAsser(s.assers...)
 	}
 	return m
 }
