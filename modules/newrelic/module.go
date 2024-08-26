@@ -9,6 +9,16 @@ import (
 
 const ModuleName = "chaki-newrelic-module"
 
+// config key consts
+const (
+	keyEnabled = "enabled"
+
+	keyAppName = "appname"
+	keyLicence = "licence"
+
+	keyAppLogEnabled = "logenabled"
+)
+
 func Module(option ...Option) *module.Module {
 	o := buildOptions(option...)
 	return module.
@@ -22,22 +32,27 @@ func Module(option ...Option) *module.Module {
 		)
 }
 
-func newNr(cfg *config.Config) (*newrelic.Application, error) {
-	of := cfg.Of("newrelic")
+func newNr(cfg *config.Config, opts *options) (*newrelic.Application, error) {
+	nrcfg := cfg.Of("newrelic")
+	setDefaultConfigs(nrcfg)
 
-	// set default configs
-	of.SetDefault("agentenabled", false)
-
-	if !of.Exists("licensekey") {
-		return newrelic.NewApplication(
-			newrelic.ConfigAppLogEnabled(of.GetBool("agentenabled")),
-			newrelic.ConfigEnabled(false),
-		)
+	if !nrcfg.GetBool(keyEnabled) {
+		return newrelic.NewApplication(append(opts.nrOptions, newrelic.ConfigEnabled(false))...)
 	}
 
-	return newrelic.NewApplication(
-		newrelic.ConfigLicense(of.GetString("licensekey")),
-		newrelic.ConfigAppLogEnabled(of.GetBool("agentenabled")),
-		newrelic.ConfigAppName(of.GetString("appname")),
+	o := append(
+		opts.nrOptions,
+		newrelic.ConfigEnabled(true),
+		newrelic.ConfigAppName(nrcfg.GetString(keyAppName)),
+		newrelic.ConfigLicense(nrcfg.GetString(keyAppName)),
+		newrelic.ConfigAppLogEnabled(nrcfg.GetBool(keyAppLogEnabled)),
 	)
+
+	return newrelic.NewApplication(o...)
+}
+
+func setDefaultConfigs(cfg *config.Config) {
+	cfg.SetDefault(keyEnabled, false)
+	cfg.SetDefault(keyLicence, "")
+	cfg.SetDefault(keyAppLogEnabled, true)
 }
