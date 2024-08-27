@@ -21,6 +21,8 @@ func Module(opts ...Option) *module.Module {
 		startOtel,
 	)
 
+	m.Merge(o.subModules...)
+
 	return m
 }
 

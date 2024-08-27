@@ -24,9 +24,10 @@ func main() {
 	)
 
 	app.Use(
-		otel.Module(),
+		otel.Module(
+			otelserver.WithServer(),
+		),
 		orm.Module(postgresdriver.New()),
-		otelserver.Module(),
 		server.Module(),
 		swagger.Module(),
 	)

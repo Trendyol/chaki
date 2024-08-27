@@ -18,9 +18,10 @@ func main() {
 
 	app.Use(
 		server.Module(),
-		otel.Module(),
-		otelclient.Module(),
-		otelserver.Module(),
+		otel.Module(
+			otelclient.WithClient(),
+			otelserver.WithServer(),
+		),
 	)
 
 	app.Provide(
