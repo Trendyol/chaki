@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/modules/server"
-	"github.com/Trendyol/chaki/modules/server/middlewares"
 	"github.com/Trendyol/chaki/modules/swagger"
 )
 
@@ -16,8 +15,6 @@ func main() {
 	)
 
 	app.Provide(
-		middlewares.ErrHandler,
-
 		// Controller
 		NewHelloController,
 

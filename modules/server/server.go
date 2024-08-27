@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/modules/server/common"
 	"github.com/Trendyol/chaki/modules/server/controller"
@@ -10,7 +12,6 @@ import (
 	"github.com/Trendyol/chaki/modules/swagger"
 	"github.com/Trendyol/chaki/util/slc"
 	"github.com/gofiber/fiber/v2"
-	"net/http"
 )
 
 type Server struct {
@@ -75,7 +76,7 @@ func OfController(ct controller.Controller) *Server {
 	return s
 }
 
-func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.FiberAppWrapper, groups []common.MiddlewareGroup, eh fiber.ErrorHandler) *fiber.App {
+func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.FiberAppWrapper, groups []common.MiddlewareGroup, opts *options) *fiber.App {
 	setDefaultFiberConfigs(cfg)
 	serverCfg := cfg.Of("server")
 
@@ -84,7 +85,7 @@ func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.Fib
 		ReadBufferSize: serverCfg.GetInt("readbuffersize"),
 		ReadTimeout:    serverCfg.GetDuration("readtimeout"),
 		WriteTimeout:   serverCfg.GetDuration("writetimeout"),
-		ErrorHandler:   eh,
+		ErrorHandler:   opts.errHandler,
 	})
 
 	if serverCfg.Exists("cors") {

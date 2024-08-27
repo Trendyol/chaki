@@ -9,7 +9,6 @@ import (
 	otelserver "github.com/Trendyol/chaki/modules/otel/server"
 	"github.com/Trendyol/chaki/modules/server"
 	"github.com/Trendyol/chaki/modules/server/controller"
-	"github.com/Trendyol/chaki/modules/server/middlewares"
 	"github.com/Trendyol/chaki/modules/server/route"
 )
 
@@ -27,7 +26,6 @@ func main() {
 	)
 
 	app.Provide(
-		middlewares.ErrHandler,
 		newHelloController,
 	)
 
