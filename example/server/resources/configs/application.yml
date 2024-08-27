@@ -3,3 +3,10 @@ server:
     # to be able to use wildcard, we need to declare it between double quotes.
     allowedOrigins: "*"
     allowCredentials: false
+
+info:
+  description: "this app is an example usage of Chaki."
+  version: 1.0.3
+  title: Example Application
+  terms: http://swagger.io/terms/
+  email: "example@mail.com"
