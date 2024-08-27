@@ -1,26 +1,8 @@
 package module
 
 import (
-	"strings"
-
 	"github.com/Trendyol/chaki/as"
-	"github.com/Trendyol/chaki/util/slc"
 )
-
-type condProvide struct {
-	requireds string
-	provides  []any
-}
-
-func (cp *condProvide) match(modules ...string) bool {
-	rm := strings.Split(cp.requireds, ",")
-	for _, rmi := range rm {
-		if slc.Contains(modules, rmi) {
-			return true
-		}
-	}
-	return false
-}
 
 // ProvideHook represents a pre-Provide step so that constructors can be manipulated or grouped
 type ProvideHook struct {
@@ -41,8 +23,7 @@ type Meta struct {
 // It makes it possible to group functionalities with modules.
 // These functionalities can be imported whenever needed
 type Module struct {
-	meta         Meta
-	condProvides []condProvide
+	meta Meta
 }
 
 func New(name ...string) *Module {
@@ -61,16 +42,6 @@ func New(name ...string) *Module {
 func (m *Module) Provide(ctr ...any) *Module {
 	m.meta.Provides = append(m.meta.Provides, ctr...)
 	return m
-}
-
-// CondProvide add constructors to provide pool with module import conditions
-// Example:
-//
-//	m.CondProvide("foo,bar", NewFooBarService) // provides if foo or bar module is used by application
-//
-// m.CondProvide("foo", NewFooController)
-func (m *Module) CondProvide(requiredModules string, ctr ...any) {
-	m.condProvides = append(m.condProvides, condProvide{requiredModules, ctr})
 }
 
 // Name returns name of the module
@@ -102,6 +73,16 @@ func (m *Module) AddAsser(assers ...as.Asser) *Module {
 	return m
 }
 
+// Merge combine sub module providers into module providers
+func (m *Module) Merge(sub ...*SubModule) *Module {
+	for _, s := range sub {
+		m.Provide(s.provides...)
+		m.AddProvideHook(s.provideHooks...)
+		m.AddAsser(s.assers...)
+	}
+	return m
+}
+
 // Meta returns meta data of the module
 func (m *Module) Meta(usedModules ...string) Meta {
 	r := Meta{
@@ -114,12 +95,6 @@ func (m *Module) Meta(usedModules ...string) Meta {
 
 	if len(usedModules) == 0 {
 		return r
-	}
-
-	for _, v := range m.condProvides {
-		if v.match(usedModules...) {
-			r.Provides = append(r.Provides, v.provides...)
-		}
 	}
 
 	return r
