@@ -2,12 +2,14 @@ package main
 
 import (
 	"context"
+
 	"github.com/Trendyol/chaki/modules/newrelic"
 
 	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/logger"
-	nrpsql "github.com/Trendyol/chaki/modules/newrelic/postgresql"
+	nrorm "github.com/Trendyol/chaki/modules/newrelic/orm"
 	nrserver "github.com/Trendyol/chaki/modules/newrelic/server"
+
 	"github.com/Trendyol/chaki/modules/orm"
 	postgresdriver "github.com/Trendyol/chaki/modules/orm/driver/postgres"
 	"github.com/Trendyol/chaki/modules/otel"
@@ -36,7 +38,7 @@ func main() {
 
 		newrelic.Module(
 			nrserver.WithServer(),
-			nrpsql.WithPostgesql(),
+			nrorm.WithGorm(),
 		),
 	)
 
