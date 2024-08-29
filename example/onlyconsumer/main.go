@@ -25,7 +25,6 @@ func main() {
 	)
 
 	logger.Fatal(app.Start())
-
 }
 
 type example2Consumer struct {

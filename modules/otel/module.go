@@ -25,7 +25,6 @@ func Module(opts ...Option) *module.Module {
 }
 
 func startOtel(lc fx.Lifecycle, opts *options) (trace.TracerProvider, propagation.TextMapPropagator) {
-
 	if opts.initFunc != nil {
 		cf := opts.initFunc()
 		lc.Append(fx.StopHook(cf))

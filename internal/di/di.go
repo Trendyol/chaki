@@ -30,7 +30,6 @@ func (d *Injector) Invoke(ctr ...any) {
 }
 
 func (d *Injector) Start(timeout time.Duration) error {
-
 	eg := &errgroup.Group{}
 	app := fx.New(
 		fx.Provide(ByValue(eg)),

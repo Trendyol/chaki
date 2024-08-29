@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/logger"
 	"github.com/Trendyol/chaki/modules/kafka"
@@ -26,7 +27,6 @@ func main() {
 	)
 
 	logger.Fatal(app.Start())
-
 }
 
 type example2Consumer struct {

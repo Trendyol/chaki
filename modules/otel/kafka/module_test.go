@@ -27,8 +27,8 @@ func Test_newConsumerInterceptor(t *testing.T) {
 		)
 
 		nextf := func(msg *consumer.Message) error {
-			assert.NotNil(t, ctxvaluer.TraceId.Get(msg.Context))
-			assert.NotNil(t, ctxvaluer.SpanId.Get(msg.Context))
+			assert.NotNil(t, ctxvaluer.TraceID.Get(msg.Context))
+			assert.NotNil(t, ctxvaluer.SpanID.Get(msg.Context))
 			return nil
 		}
 
@@ -78,8 +78,8 @@ func Test_newProducerInterceptor(t *testing.T) {
 		)
 
 		var nextf producer.InterceptNextFunc = func(ctx context.Context, msg ...producer.Message) error {
-			assert.NotNil(t, ctxvaluer.TraceId.Get(msg[0].Context))
-			assert.NotNil(t, ctxvaluer.SpanId.Get(msg[0].Context))
+			assert.NotNil(t, ctxvaluer.TraceID.Get(msg[0].Context))
+			assert.NotNil(t, ctxvaluer.SpanID.Get(msg[0].Context))
 			return nil
 		}
 
@@ -104,8 +104,8 @@ func Test_newProducerInterceptor(t *testing.T) {
 		)
 
 		var nextf producer.InterceptNextFunc = func(ctx context.Context, msg ...producer.Message) error {
-			assert.NotNil(t, ctxvaluer.TraceId.Get(msg[0].Context))
-			assert.NotNil(t, ctxvaluer.SpanId.Get(msg[0].Context))
+			assert.NotNil(t, ctxvaluer.TraceID.Get(msg[0].Context))
+			assert.NotNil(t, ctxvaluer.SpanID.Get(msg[0].Context))
 			return errTest
 		}
 
@@ -115,7 +115,6 @@ func Test_newProducerInterceptor(t *testing.T) {
 		// Then
 		assert.Equal(t, errTest, err)
 	})
-
 }
 
 func Test_newBatchConsumerInterceptor(t *testing.T) {
@@ -135,8 +134,8 @@ func Test_newBatchConsumerInterceptor(t *testing.T) {
 
 		var nextf consumer.BatchConsumeFn = func(msgs []*consumer.Message) error {
 			for _, msg := range msgs {
-				assert.NotNil(t, ctxvaluer.TraceId.Get(msg.Context))
-				assert.NotNil(t, ctxvaluer.SpanId.Get(msg.Context))
+				assert.NotNil(t, ctxvaluer.TraceID.Get(msg.Context))
+				assert.NotNil(t, ctxvaluer.SpanID.Get(msg.Context))
 			}
 			return nil
 		}
@@ -162,8 +161,8 @@ func Test_newBatchConsumerInterceptor(t *testing.T) {
 		)
 
 		var nextf producer.InterceptNextFunc = func(ctx context.Context, msg ...producer.Message) error {
-			assert.NotNil(t, ctxvaluer.TraceId.Get(msg[0].Context))
-			assert.NotNil(t, ctxvaluer.SpanId.Get(msg[0].Context))
+			assert.NotNil(t, ctxvaluer.TraceID.Get(msg[0].Context))
+			assert.NotNil(t, ctxvaluer.SpanID.Get(msg[0].Context))
 			return errTest
 		}
 
@@ -173,5 +172,4 @@ func Test_newBatchConsumerInterceptor(t *testing.T) {
 		// Then
 		assert.Equal(t, errTest, err)
 	})
-
 }

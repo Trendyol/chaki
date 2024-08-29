@@ -53,6 +53,6 @@ func (c *HelloController) Routes() []route.Route {
 }
 
 func (c *HelloController) greetHandler(ctx context.Context, _ any) (string, error) {
-	logger.From(ctx).Info("trace id and spand id will be logged wiht message")
+	logger.From(ctx).Info("trace id and spand id will be logged with message")
 	return "Greetings!", nil
 }

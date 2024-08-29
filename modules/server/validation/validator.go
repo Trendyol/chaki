@@ -27,7 +27,7 @@ type (
 var (
 	validate           *validator.Validate
 	validationMessages = map[string]func(string, any) string{
-		"required": func(s string, a any) string {
+		"required": func(s string, _ any) string {
 			return fmt.Sprintf("field %s is required", s)
 		},
 	}
@@ -64,7 +64,6 @@ func Init(rules []Rule) {
 		}
 		validationMessages[r.Name()] = r.Message
 	}
-
 }
 
 func Validate(s any) error {
@@ -92,7 +91,6 @@ func Validate(s any) error {
 			msg:  "validation error",
 			errs: fieldErrors,
 		}
-
 	}
 
 	return nil

@@ -16,7 +16,6 @@ func buildDefinitions(eds []EndpointDef) m {
 	}
 
 	return defs
-
 }
 
 func buildModelDefinition(defs m, t reflect.Type, isReq bool) {
@@ -76,7 +75,6 @@ func buildModelDefinition(defs m, t reflect.Type, isReq bool) {
 
 		defs[getNameFromType(t)] = mi
 	}
-
 }
 
 func getFieldName(f reflect.StructField) string {

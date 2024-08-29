@@ -1,10 +1,11 @@
 package client
 
 import (
+	"net/http"
+
 	"github.com/Trendyol/chaki/modules/common/ctxvaluer"
 	"github.com/Trendyol/chaki/util/wrapper"
 	"github.com/go-resty/resty/v2"
-	"net/http"
 )
 
 type DriverWrapper wrapper.Wrapper[*resty.Client]
@@ -21,7 +22,7 @@ func withCtxBinder() DriverWrapper {
 			context := r.Context()
 
 			h := map[string]string{
-				ctxvaluer.CorrelationIdKey: context.Value(ctxvaluer.CorrelationIdKey).(string),
+				ctxvaluer.CorrelationIDKey: context.Value(ctxvaluer.CorrelationIDKey).(string),
 				ctxvaluer.ExecutorUserKey:  context.Value(ctxvaluer.ExecutorUserKey).(string),
 				ctxvaluer.AgentNameKey:     context.Value(ctxvaluer.AgentNameKey).(string),
 				ctxvaluer.OwnerKey:         context.Value(ctxvaluer.OwnerKey).(string),

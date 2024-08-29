@@ -23,7 +23,6 @@ func (f *fooImpl) Bar() string {
 }
 
 func Test_asser_Match(t *testing.T) {
-
 	t.Run("it should match struct type correctly when correct constructor  provided", func(t *testing.T) {
 		// Given
 		asser := Struct[string]("testf")
@@ -65,5 +64,4 @@ func Test_asser_Match(t *testing.T) {
 		// Then
 		assert.Equal(t, true, res)
 	})
-
 }

@@ -10,9 +10,7 @@ import (
 
 const ModuleName = "chaki-orm-module"
 
-var (
-	asGromWrapper = as.Struct[GormWrapper]("gormwrappers")
-)
+var asGromWrapper = as.Struct[GormWrapper]("gormwrappers")
 
 func Module(d driver.Driver, opts ...Option) *module.Module {
 	m := module.New(ModuleName)

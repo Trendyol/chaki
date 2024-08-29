@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type testEntity struct{ Id int }
+type testEntity struct{ ID int }
 
 func (te *testEntity) TableName() string { return "test" }
 
@@ -43,11 +43,11 @@ func Test_txer_Transaction(t *testing.T) {
 		})
 
 		// Then
-		assert.Equal(t, 12, got.Id)
+		assert.Equal(t, 12, got.ID)
 		assert.NoError(t, err)
 	})
 
-	t.Run("it should begin tx and rollback when error occured", func(t *testing.T) {
+	t.Run("it should begin tx and rollback when error occurred", func(t *testing.T) {
 		// Given
 		var (
 			db, mock, err = ormtest.NewPostgresMock()
