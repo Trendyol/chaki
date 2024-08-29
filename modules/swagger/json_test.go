@@ -53,7 +53,7 @@ func Test_toSwaggerPath(t *testing.T) {
 func Test_baseJson(t *testing.T) {
 	v := viper.New()
 	cfg := config.NewConfig(v, nil)
-	got := baseJson(cfg)
+	got := baseJSON(cfg)
 
 	assert.NotNil(t, got)
 	assert.Equal(t, "2.0", got["swagger"])

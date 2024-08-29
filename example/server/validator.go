@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/Trendyol/chaki/modules/server/validation"
-	"github.com/go-playground/validator/v10"
 	"reflect"
 	"strings"
+
+	"github.com/Trendyol/chaki/modules/server/validation"
+	"github.com/go-playground/validator/v10"
 )
 
 func NewHelloTextValidator() validation.Rule {

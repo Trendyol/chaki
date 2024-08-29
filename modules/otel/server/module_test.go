@@ -25,8 +25,8 @@ func Test_newMiddlewareGroup(t *testing.T) {
 
 		app.Use(func(c *fiber.Ctx) error {
 			ctx := c.UserContext()
-			tid = ctxvaluer.TraceId.Get(ctx)
-			sid = ctxvaluer.SpanId.Get(ctx)
+			tid = ctxvaluer.TraceID.Get(ctx)
+			sid = ctxvaluer.SpanID.Get(ctx)
 			return nil
 		})
 
@@ -37,6 +37,5 @@ func Test_newMiddlewareGroup(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, tid)
 		assert.NotEmpty(t, sid)
-
 	})
 }

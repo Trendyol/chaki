@@ -9,7 +9,7 @@ import (
 func TestWithConfigDisabled(t *testing.T) {
 	t.Run("get default disabled value when option provided", func(t *testing.T) {
 		// Given
-		var opts = []Option{WithConfigDisabled(true)}
+		opts := []Option{WithConfigDisabled(true)}
 		// When
 		res := getOptions(opts...)
 		// Then
@@ -20,7 +20,7 @@ func TestWithConfigDisabled(t *testing.T) {
 func TestWithConfigPath(t *testing.T) {
 	t.Run("get default path when no option provided", func(t *testing.T) {
 		// Given
-		var opts = []Option{}
+		opts := []Option{}
 		// When
 		res := getOptions(opts...)
 		// Then
@@ -29,8 +29,8 @@ func TestWithConfigPath(t *testing.T) {
 
 	t.Run("get default path when no option provided", func(t *testing.T) {
 		// Given
-		var want = "file/path.json"
-		var opts = []Option{WithConfigPath(want)}
+		want := "file/path.json"
+		opts := []Option{WithConfigPath(want)}
 		// When
 		res := getOptions(opts...)
 		// Then
@@ -41,7 +41,7 @@ func TestWithConfigPath(t *testing.T) {
 func TestWithConfigReferncePath(t *testing.T) {
 	t.Run("get default path when no option provided", func(t *testing.T) {
 		// Given
-		var opts = []Option{}
+		opts := []Option{}
 		// When
 		res := getOptions(opts...)
 		// Then
@@ -50,7 +50,7 @@ func TestWithConfigReferncePath(t *testing.T) {
 
 	t.Run("get default path when no option provided", func(t *testing.T) {
 		// Given
-		var opts = []Option{
+		opts := []Option{
 			WithConfigReferencePath("foo", "bar.json"),
 			WithConfigReferencePath("zoo", "too.yaml"),
 		}

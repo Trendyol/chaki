@@ -1,10 +1,11 @@
 package middlewares
 
 import (
+	"time"
+
 	"github.com/Trendyol/chaki/logger"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
-	"time"
 )
 
 func Log() fiber.Handler {

@@ -28,10 +28,8 @@ type (
 	}
 )
 
-var (
-	// type-check
-	_ Interceptor = InterceptorFunc(nil)
-)
+// type-check
+var _ Interceptor = InterceptorFunc(nil)
 
 func notImplementedConsumeFn(*kafkalib.Message) error {
 	panic("consume method not implemented")

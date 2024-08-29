@@ -2,31 +2,32 @@ package ctxvaluer
 
 import (
 	"context"
+
 	"github.com/Trendyol/chaki/logger"
 	"github.com/Trendyol/chaki/util/appctx"
 	"go.uber.org/zap"
 )
 
 const (
-	CorrelationIdKey = "x-correlationId"
+	CorrelationIDKey = "x-correlationId"
 	ExecutorUserKey  = "x-executor-user"
-	TraceIdKey       = "trace-id"
-	SpanIdKey        = "span-id"
+	TraceIDKey       = "trace-id"
+	SpanIDKey        = "span-id"
 	AgentNameKey     = "x-agent-name"
 	OwnerKey         = "x-owner"
 )
 
 var (
-	CorrelationId = appctx.NewValuer[string](CorrelationIdKey)
+	CorrelationID = appctx.NewValuer[string](CorrelationIDKey)
 	ExecutorUser  = appctx.NewValuer[string](ExecutorUserKey)
-	TraceId       = appctx.NewValuer[string](TraceIdKey)
-	SpanId        = appctx.NewValuer[string](SpanIdKey)
+	TraceID       = appctx.NewValuer[string](TraceIDKey)
+	SpanID        = appctx.NewValuer[string](SpanIDKey)
 	AgentName     = appctx.NewValuer[string](AgentNameKey)
 	Owner         = appctx.NewValuer[string](OwnerKey)
 )
 
 type CreateParams struct {
-	CorrelationId string
+	CorrelationID string
 	ExecutorUser  string
 	AgentName     string
 	Owner         string
@@ -34,13 +35,13 @@ type CreateParams struct {
 
 func CreateBaseTaskContext(parent context.Context, params CreateParams) context.Context {
 	ctx := parent
-	ctx = CorrelationId.Set(ctx, params.CorrelationId)
+	ctx = CorrelationID.Set(ctx, params.CorrelationID)
 	ctx = ExecutorUser.Set(ctx, params.ExecutorUser)
 	ctx = AgentName.Set(ctx, params.AgentName)
 	ctx = Owner.Set(ctx, params.Owner)
 
 	l := logger.New().With(
-		zap.String(CorrelationIdKey, params.CorrelationId),
+		zap.String(CorrelationIDKey, params.CorrelationID),
 		zap.String(ExecutorUserKey, params.ExecutorUser),
 		zap.String(AgentNameKey, params.AgentName),
 		zap.String(OwnerKey, params.Owner),

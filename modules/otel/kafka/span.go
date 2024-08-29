@@ -55,7 +55,7 @@ func (sb *spanBuilder) buildMessageSpan(msg *consumer.Message, kind trace.SpanKi
 		semconv.MessagingDestinationName(msg.Topic),
 		semconv.MessagingOperationReceive,
 		semconv.MessagingMessageID(strconv.FormatInt(msg.Offset, 10)),
-		semconv.MessagingKafkaSourcePartition(int(msg.Partition)),
+		semconv.MessagingKafkaSourcePartition(msg.Partition),
 	}
 
 	opts := []trace.SpanStartOption{

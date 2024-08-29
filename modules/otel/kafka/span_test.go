@@ -45,9 +45,8 @@ func Test_spanBuilder_BuildConsumerSpan(t *testing.T) {
 
 	// Then
 	assert.NotNil(t, span)
-	assert.NotNil(t, ctxvaluer.SpanId.Get(ctx))
-	assert.NotNil(t, ctxvaluer.TraceId.Get(ctx))
-
+	assert.NotNil(t, ctxvaluer.SpanID.Get(ctx))
+	assert.NotNil(t, ctxvaluer.TraceID.Get(ctx))
 }
 
 func Test_spanBuilder_BuildProducerSpan(t *testing.T) {
@@ -65,10 +64,9 @@ func Test_spanBuilder_BuildProducerSpan(t *testing.T) {
 
 	// Then
 	assert.NotNil(t, span)
-	assert.NotNil(t, ctxvaluer.SpanId.Get(ctx))
-	assert.NotNil(t, ctxvaluer.TraceId.Get(ctx))
+	assert.NotNil(t, ctxvaluer.SpanID.Get(ctx))
+	assert.NotNil(t, ctxvaluer.TraceID.Get(ctx))
 	assert.Len(t, msgs, 2)
 	assert.Len(t, msgs[0].Headers, 1)
 	assert.Equal(t, msgs[0].Headers[0].Key, "traceparent")
-
 }

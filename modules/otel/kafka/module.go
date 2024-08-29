@@ -32,7 +32,6 @@ func newConsumerInterceptor(sb *spanBuilder) consumer.Interceptor {
 
 		msg.Context = ctx
 		err := next(msg)
-
 		if err != nil {
 			span.RecordError(err)
 			return err

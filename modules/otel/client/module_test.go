@@ -49,7 +49,7 @@ func Test_newClientRoundTripperWrapper(t *testing.T) {
 		req, _ := http.NewRequest("GET", "http://a.com", nil)
 
 		// When
-		_, err := cl.Do(req.WithContext(ctx))
+		_, err := cl.Do(req.WithContext(ctx)) //nolint:bodyclose
 
 		// Then
 		assert.NoError(t, err)

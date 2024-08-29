@@ -18,7 +18,7 @@ type testGormProvider struct{ db *gorm.DB }
 func (p *testGormProvider) Get(context.Context) *gorm.DB { return p.db }
 
 type testModel struct {
-	Id  int    `gorm:"primaryKey"`
+	ID  int    `gorm:"primaryKey"`
 	Foo string `gorm:"foo"`
 }
 
@@ -39,19 +39,19 @@ func newTestRepository() (Repository[int, testModel], sqlmock.Sqlmock) {
 func buildRows(rows ...*testModel) *sqlmock.Rows {
 	r := sqlmock.NewRows([]string{"id", "foo"})
 	for _, row := range rows {
-		idv, _ := driver.Int32.ConvertValue(row.Id)
+		idv, _ := driver.Int32.ConvertValue(row.ID)
 		foov, _ := driver.String.ConvertValue(row.Foo)
 		r.AddRow(idv, foov)
 	}
 	return r
 }
 
-func Test_respository_FindById(t *testing.T) {
+func Test_repository_FindById(t *testing.T) {
 	t.Run("it should run find by id query when valid requested", func(t *testing.T) {
 		// Given
 		repo, mock := newTestRepository()
 		m := &testModel{
-			Id:  12,
+			ID:  12,
 			Foo: "test",
 		}
 		mock.
@@ -60,21 +60,20 @@ func Test_respository_FindById(t *testing.T) {
 			WillReturnRows(buildRows(m))
 
 		// When
-		got, err := repo.FindById(context.Background(), 12)
+		got, err := repo.FindByID(context.Background(), 12)
 
 		// Then
 		assert.NoError(t, err)
 		assert.Equal(t, m, got)
-
 	})
 }
 
-func Test_respository_FindOne(t *testing.T) {
+func Test_repository_FindOne(t *testing.T) {
 	t.Run("it should run find one query when valid requested", func(t *testing.T) {
 		// Given
 		repo, mock := newTestRepository()
 		m := &testModel{
-			Id:  12,
+			ID:  12,
 			Foo: "test",
 		}
 
@@ -95,11 +94,10 @@ func Test_respository_FindOne(t *testing.T) {
 		// Then
 		assert.NoError(t, err)
 		assert.Equal(t, m, got)
-
 	})
 }
 
-func Test_respository_FindAll(t *testing.T) {
+func Test_repository_FindAll(t *testing.T) {
 	t.Run("it should run find all  when valid requested", func(t *testing.T) {
 		// Given
 		repo, mock := newTestRepository()
@@ -125,11 +123,10 @@ func Test_respository_FindAll(t *testing.T) {
 		// Then
 		assert.NoError(t, err)
 		assert.Equal(t, testModels, got)
-
 	})
 }
 
-func Test_respository_Update(t *testing.T) {
+func Test_repository_Update(t *testing.T) {
 	t.Run("it should run update query  when valid requested", func(t *testing.T) {
 		// Given
 		repo, mock := newTestRepository()
@@ -146,26 +143,25 @@ func Test_respository_Update(t *testing.T) {
 		mock.ExpectCommit()
 
 		// When
-		err := repo.Update(context.Background(), query.ById(12), u)
+		err := repo.Update(context.Background(), query.ByID(12), u)
 
 		// Then
 		assert.NoError(t, err)
-
 	})
 }
 
-func Test_respository_SaveAll(t *testing.T) {
+func Test_repository_SaveAll(t *testing.T) {
 	t.Run("it should run save all query when valid requested", func(t *testing.T) {
 		// Given
 		repo, mock := newTestRepository()
 
 		u := []*testModel{
 			{
-				Id:  12,
+				ID:  12,
 				Foo: "test",
 			},
 			{
-				Id:  14,
+				ID:  14,
 				Foo: "test_2",
 			},
 		}
@@ -182,16 +178,15 @@ func Test_respository_SaveAll(t *testing.T) {
 
 		// Then
 		assert.NoError(t, err)
-
 	})
 }
 
-func Test_respository_Delete(t *testing.T) {
+func Test_repository_Delete(t *testing.T) {
 	t.Run("it should run delete query  when valid requested", func(t *testing.T) {
 		// Given
 		repo, mock := newTestRepository()
 
-		q := query.ById(12)
+		q := query.ByID(12)
 
 		mock.ExpectBegin()
 		mock.
@@ -206,6 +201,5 @@ func Test_respository_Delete(t *testing.T) {
 
 		// Then
 		assert.NoError(t, err)
-
 	})
 }

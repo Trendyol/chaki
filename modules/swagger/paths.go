@@ -48,7 +48,6 @@ func buildPaths(eds []EndpointDef) m {
 
 		existdesc[meth] = desc
 		p[swagp] = existdesc
-
 	}
 
 	return p
@@ -101,7 +100,6 @@ func getParameters(t reflect.Type) []m {
 		if f.Tag.Get("json") != "" {
 			hasBody = true
 		}
-
 	}
 
 	if hasBody {

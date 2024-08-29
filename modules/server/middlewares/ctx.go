@@ -2,10 +2,11 @@ package middlewares
 
 import (
 	"context"
+	"time"
+
 	"github.com/Trendyol/chaki/modules/common/ctxvaluer"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"time"
 )
 
 func ContextBinder() fiber.Handler {
@@ -30,7 +31,7 @@ func createContext(c *fiber.Ctx) context.Context {
 	ctx := context.Background()
 
 	return ctxvaluer.CreateBaseTaskContext(ctx, ctxvaluer.CreateParams{
-		CorrelationId: c.Get(ctxvaluer.CorrelationIdKey, uuid.NewString()),
+		CorrelationID: c.Get(ctxvaluer.CorrelationIDKey, uuid.NewString()),
 		ExecutorUser:  c.Get(ctxvaluer.ExecutorUserKey),
 		AgentName:     c.Get(ctxvaluer.AgentNameKey, ""),
 		Owner:         c.Get(ctxvaluer.OwnerKey, ""),

@@ -1,8 +1,9 @@
 package common
 
 import (
-	"github.com/Trendyol/chaki/util/wrapper"
 	"net/http"
+
+	"github.com/Trendyol/chaki/util/wrapper"
 )
 
 type (

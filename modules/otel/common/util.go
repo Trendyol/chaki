@@ -13,11 +13,11 @@ func WithContext(ctx context.Context, span trace.Span) context.Context {
 	tid := span.SpanContext().TraceID().String()
 	sid := span.SpanContext().SpanID().String()
 
-	ctx = ctxvaluer.TraceId.Set(ctx, tid)
-	ctx = ctxvaluer.SpanId.Set(ctx, sid)
+	ctx = ctxvaluer.TraceID.Set(ctx, tid)
+	ctx = ctxvaluer.SpanID.Set(ctx, sid)
 	ctx = logger.WithLogger(ctx, logger.From(ctx).With(
-		zap.String(ctxvaluer.TraceIdKey, tid),
-		zap.String(ctxvaluer.SpanIdKey, sid),
+		zap.String(ctxvaluer.TraceIDKey, tid),
+		zap.String(ctxvaluer.SpanIDKey, sid),
 	))
 
 	return ctx
