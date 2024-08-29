@@ -40,7 +40,7 @@ func newNr(cfg *config.Config, opts *options) (*newrelic.Application, error) {
 		return newrelic.NewApplication(append(opts.nrOptions, newrelic.ConfigEnabled(false))...)
 	}
 
-	o := append(
+	opts.nrOptions = append(
 		opts.nrOptions,
 		newrelic.ConfigEnabled(true),
 		newrelic.ConfigAppName(nrcfg.GetString(keyAppName)),
@@ -48,7 +48,7 @@ func newNr(cfg *config.Config, opts *options) (*newrelic.Application, error) {
 		newrelic.ConfigAppLogEnabled(nrcfg.GetBool(keyAppLogEnabled)),
 	)
 
-	return newrelic.NewApplication(o...)
+	return newrelic.NewApplication(opts.nrOptions...)
 }
 
 func setDefaultConfigs(cfg *config.Config) {
