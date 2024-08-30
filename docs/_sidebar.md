@@ -5,3 +5,5 @@
 - Modules
   - [Std Modules](modules/std.md) 
   - [Orm](modules/orm.md)
+  - [Swagger](modules/swagger.md)
+  - [New Relic](modules/newrelic.md)
