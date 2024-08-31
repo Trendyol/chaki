@@ -3,6 +3,8 @@ package logger
 import (
 	"context"
 	"errors"
+	"io/fs"
+	"syscall"
 
 	"github.com/Trendyol/chaki/util/appctx"
 	"go.uber.org/zap"
@@ -45,7 +47,14 @@ func New() *zap.Logger {
 }
 
 func Sync() error {
-	return New().Sync()
+	err := New().Sync()
+
+	var pathErr *fs.PathError
+	if errors.Is(err, syscall.ENOTTY) || errors.As(err, &pathErr) {
+		return nil
+	}
+
+	return err
 }
 
 func From(ctx context.Context) *zap.Logger {
