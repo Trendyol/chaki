@@ -6,7 +6,7 @@ type Responser interface {
 	ToResponse() any
 }
 
-type Statuser interface {
+type Stature interface {
 	Status() int
 }
 

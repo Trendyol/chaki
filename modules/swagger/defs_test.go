@@ -120,7 +120,6 @@ func TestBuildModelDefinition(t *testing.T) {
 }
 
 func TestBuildModelDefinitions(t *testing.T) {
-
 	tests := []struct {
 		field reflect.Type
 		len   int
@@ -136,7 +135,6 @@ func TestBuildModelDefinitions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			defs := make(m)
 			buildModelDefinition(defs, tt.field, true)
 

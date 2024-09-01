@@ -2,11 +2,12 @@ package route
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Trendyol/chaki/internal/typlect"
 	"github.com/Trendyol/chaki/modules/server/response"
 	"github.com/Trendyol/chaki/modules/server/validation"
 	"github.com/gofiber/fiber/v2"
-	"net/http"
 )
 
 type NoParam = typlect.NoParam
@@ -75,7 +76,6 @@ func build[Req, Res any](f HandlerFunc[Req, Res], defaultStatus ...int) fiber.Ha
 		hasContentType := len(c.Request().Header.Peek("content-type")) > 0
 
 		if hasInput {
-
 			if hasParam {
 				if err := c.ParamsParser(&req); err != nil {
 					return err
@@ -115,7 +115,7 @@ func build[Req, Res any](f HandlerFunc[Req, Res], defaultStatus ...int) fiber.Ha
 			resp = res
 		}
 
-		if st, ok := any(res).(response.Statuser); ok {
+		if st, ok := any(res).(response.Stature); ok {
 			status = st.Status()
 		}
 

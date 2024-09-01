@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"errors"
+
 	"github.com/Trendyol/chaki/config"
 	kafkalib "github.com/Trendyol/kafka-konsumer/v2"
 )
@@ -18,7 +19,7 @@ func NewBatchConsumerStarter(cfg *config.Config, c BatchConsumer, interceptors [
 	}
 
 	if libcfg.BatchConfiguration == nil {
-		return nil, errors.New("batch consumer not configured") //todo add error types
+		return nil, errors.New("batch consumer not configured") // todo add error types
 	}
 
 	libcfg.BatchConfiguration.BatchConsumeFn = buildBatchConsumeFn(c.Consume, interceptors)
@@ -49,7 +50,6 @@ func buildBatchConsumeFn(cf BatchConsumeFn, interceptors []BatchConsumerIntercep
 	return func(m []*kafkalib.Message) error {
 		return interceptors[0].Intercept(m, next)
 	}
-
 }
 
 func buildBatchConsumeNextFunc(cf BatchConsumeFn, interceptors []BatchConsumerInterceptor, i int) BatchConsumeFn {

@@ -25,7 +25,7 @@ const (
 )
 
 func buildDocs(eds []EndpointDef, cfg *config.Config) Docs {
-	dj := baseJson(cfg)
+	dj := baseJSON(cfg)
 	dj["definitions"] = buildDefinitions(eds)
 	dj["paths"] = buildPaths(eds)
 	return Docs(dj)
@@ -39,7 +39,7 @@ func toSwaggerPath(s string) string {
 	})
 }
 
-func baseJson(cfg *config.Config) m {
+func baseJSON(cfg *config.Config) m {
 	of := cfg.Of("info")
 
 	of.SetDefault("description", "")
@@ -90,7 +90,6 @@ func getPrimitiveType(t reflect.Type) m {
 	return m{
 		"type": k,
 	}
-
 }
 
 func getPropertyField(t reflect.Type) m {

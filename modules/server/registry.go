@@ -1,12 +1,13 @@
 package server
 
 import (
+	"net/url"
+
 	"github.com/Trendyol/chaki/modules/server/controller"
 	"github.com/Trendyol/chaki/modules/server/route"
 	"github.com/Trendyol/chaki/modules/swagger"
 	"github.com/Trendyol/chaki/util/slc"
 	"github.com/gofiber/fiber/v2"
-	"net/url"
 )
 
 type registry struct {

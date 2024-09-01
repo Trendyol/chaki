@@ -1,15 +1,18 @@
 package client
 
 import (
+	"net/http"
+
 	"github.com/Trendyol/chaki/as"
 	"github.com/Trendyol/chaki/module"
 	"github.com/Trendyol/chaki/modules/client/common"
 	"github.com/go-resty/resty/v2"
-	"net/http"
 )
 
-var asDriverWrapper = as.Struct[DriverWrapper]("driverupdater")
-var asRoundTripperWrapper = as.Struct[common.RoundTripperWrapper]("roundtripperwrapper")
+var (
+	asDriverWrapper       = as.Struct[DriverWrapper]("driverupdater")
+	asRoundTripperWrapper = as.Struct[common.RoundTripperWrapper]("roundtripperwrapper")
+)
 
 func Module() *module.Module {
 	m := module.New("rest")

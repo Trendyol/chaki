@@ -38,6 +38,7 @@ func Test_newRedirectMiddleware(t *testing.T) {
 	for _, tt := range tests {
 		req := httptest.NewRequest(http.MethodGet, tt.path, nil)
 		resp, _ := app.Test(req)
+		defer resp.Body.Close()
 
 		assert.Equal(t, tt.statusCode, resp.StatusCode)
 		assert.Equal(t, tt.expected, resp.Header.Get("Location"))
@@ -53,6 +54,7 @@ func Test_newMiddleware(t *testing.T) {
 	t.Run("Serve JSON for /swagger/docs.json", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/swagger/docs.json", nil)
 		resp, _ := app.Test(req)
+		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		body, _ := io.ReadAll(resp.Body)
@@ -62,6 +64,7 @@ func Test_newMiddleware(t *testing.T) {
 	t.Run("Serve static files for /swagger", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/swagger/index.html", nil)
 		resp, _ := app.Test(req)
+		defer resp.Body.Close()
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})

@@ -27,7 +27,6 @@ func main() {
 	)
 
 	logger.Fatal(app.Start())
-
 }
 
 func newConsumer() consumer.Consumer {

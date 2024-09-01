@@ -44,7 +44,6 @@ func buildConsumeFn(cf ConsumeFn, interceptors []Interceptor) ConsumeFn {
 	return func(m *kafkalib.Message) error {
 		return interceptors[0].Intercept(m, next)
 	}
-
 }
 
 func buildNextFunc(cf ConsumeFn, interceptors []Interceptor, i int) ConsumeFn {

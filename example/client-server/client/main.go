@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/logger"
 	"github.com/Trendyol/chaki/modules/client"

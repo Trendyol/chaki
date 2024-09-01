@@ -22,7 +22,7 @@ type writerConfig struct {
 	BatchTimeout time.Duration
 	BatchBytes   int64
 	WriteTimeout time.Duration
-	//RequiredAcks           kafka.RequiredAcks
+	// RequiredAcks           kafka.RequiredAcks
 	BatchSize              int
 	WriteBackoffMax        time.Duration
 	WriteBackoffMin        time.Duration
@@ -57,13 +57,13 @@ func buildLibConfig(cfg *config.Config, producerName string) (*kafkalib.Producer
 			BatchTimeout: pcfg.Writer.BatchTimeout,
 			BatchBytes:   pcfg.Writer.BatchBytes,
 			WriteTimeout: pcfg.Writer.WriteTimeout,
-			//RequiredAcks: , TODO:
+			// RequiredAcks: , TODO:
 			BatchSize:       pcfg.Writer.BatchSize,
 			WriteBackoffMax: pcfg.Writer.WriteBackoffMax,
 			WriteBackoffMin: pcfg.Writer.WriteBackoffMin,
 			MaxAttempts:     pcfg.Writer.MaxAttempts,
 			Async:           pcfg.Writer.Async,
-			//Compression: compress.Compression(),
+			// Compression: compress.Compression(),
 			AllowAutoTopicCreation: pcfg.Writer.AllowAutoTopicCreation,
 		},
 	}
@@ -84,5 +84,4 @@ func buildLibConfig(cfg *config.Config, producerName string) (*kafkalib.Producer
 	}
 
 	return libcfg, nil
-
 }

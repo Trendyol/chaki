@@ -78,6 +78,7 @@ type saslConfig struct {
 	Password string
 }
 
+// nolint:funlen
 func buildLibConfig(cfg *config.Config, consumerName string) (*kafkalib.ConsumerConfig, error) {
 	kcfg, err := config.ToStruct[consumerConfig](cfg.Of("kafka.consumer"), consumerName)
 	if err != nil {

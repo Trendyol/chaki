@@ -10,9 +10,7 @@ import (
 	"github.com/Trendyol/chaki/util/slc"
 )
 
-var (
-	errType = reflect.TypeOf((*error)(nil)).Elem()
-)
+var errType = reflect.TypeOf((*error)(nil)).Elem()
 
 func IsInterface[T any]() (ok bool) {
 	defer func() {
@@ -77,7 +75,7 @@ func BuildCtrFromValue(t any) any {
 }
 
 func InvokerFromValues(vs ...any) any {
-	var rvs []reflect.Type
+	rvs := make([]reflect.Type, 0, len(vs))
 	for _, v := range vs {
 		rvs = append(rvs, reflect.TypeOf(v))
 	}
@@ -98,7 +96,7 @@ func BuildCtrInvoker(ctr any, h func(v any) error) any {
 	)
 
 	return reflect.MakeFunc(ft, func(args []reflect.Value) (results []reflect.Value) {
-		h(args[0].Interface())
+		_ = h(args[0].Interface())
 
 		return []reflect.Value{reflect.Zero(errType)}
 	}).Interface()

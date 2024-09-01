@@ -85,7 +85,6 @@ func (p *gormPlugin) after() gormHookFunc {
 		}
 
 		defer seg.End()
-
 	}
 }
 

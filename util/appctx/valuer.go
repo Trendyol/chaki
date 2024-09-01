@@ -2,13 +2,15 @@ package appctx
 
 import "context"
 
+type valuerKey string
+
 type Valuer[T any] struct {
-	key       string
+	key       valuerKey
 	defaulter func() T
 }
 
 func NewValuer[T any](key string, defaultValue ...T) *Valuer[T] {
-	vr := &Valuer[T]{key: key}
+	vr := &Valuer[T]{key: valuerKey(key)}
 	if len(defaultValue) == 1 {
 		vr.defaulter = func() T { return defaultValue[0] }
 	}

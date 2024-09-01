@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"errors"
+
 	"github.com/Trendyol/chaki/logger"
 	"github.com/Trendyol/chaki/modules/server/response"
 	"github.com/Trendyol/chaki/modules/server/validation"

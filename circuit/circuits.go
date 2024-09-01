@@ -2,12 +2,15 @@ package http
 
 import (
 	"fmt"
-	"github.com/afex/hystrix-go/hystrix"
 	"time"
+
+	"github.com/afex/hystrix-go/hystrix"
 )
 
-type CircuitFunc func() error
-type CircuitErrorFilter func(error) (bool, error)
+type (
+	CircuitFunc        func() error
+	CircuitErrorFilter func(error) (bool, error)
+)
 
 type CircuitConfig struct {
 	Name                   string
@@ -46,7 +49,6 @@ func (c *Circuit) Do(command string, fu CircuitFunc, fallback func(error) error,
 	var ok bool
 
 	function := func() error {
-
 		err := fu()
 
 		for _, filter := range fi {
@@ -75,7 +77,14 @@ func (c *Circuit) Do(command string, fu CircuitFunc, fallback func(error) error,
 	return nil
 }
 
-func (c *Circuit) DoR(command string, fu CircuitFunc, fallback func(error) error, retry int, delay time.Duration, fi ...CircuitErrorFilter) error {
+func (c *Circuit) DoR(
+	command string,
+	fu CircuitFunc,
+	fallback func(error) error,
+	retry int,
+	delay time.Duration,
+	fi ...CircuitErrorFilter,
+) error {
 	var e error
 	var ok bool
 

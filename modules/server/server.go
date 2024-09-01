@@ -76,7 +76,13 @@ func OfController(ct controller.Controller) *Server {
 	return s
 }
 
-func defaultFiber(cfg *config.Config, mws []fiber.Handler, wrappers []common.FiberAppWrapper, groups []common.MiddlewareGroup, opts *options) *fiber.App {
+func defaultFiber(
+	cfg *config.Config,
+	mws []fiber.Handler,
+	wrappers []common.FiberAppWrapper,
+	groups []common.MiddlewareGroup,
+	opts *options,
+) *fiber.App {
 	setDefaultFiberConfigs(cfg)
 	serverCfg := cfg.Of("server")
 

@@ -11,40 +11,38 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-type IdType interface {
+type IDType interface {
 	comparable
 }
 
-var (
-	ErrRecordNotFound = gorm.ErrRecordNotFound
-)
+var ErrRecordNotFound = gorm.ErrRecordNotFound
 
-type Repository[Id IdType, T any] interface {
-	FindById(ctx context.Context, id Id) (*T, error)
+type Repository[Id IDType, T any] interface {
+	FindByID(ctx context.Context, id Id) (*T, error)
 	FindOne(ctx context.Context, q query.Query) (*T, error)
 	FindAll(ctx context.Context, q query.Query) ([]*T, error)
 	Update(ctx context.Context, q query.Query, update any) error
 	Save(ctx context.Context, t *T) (*T, error)
 	SaveAll(ctx context.Context, ts []*T) error
-	DeleteById(ctx context.Context, id Id) error
+	DeleteByID(ctx context.Context, id Id) error
 	Delete(ctx context.Context, q query.Query) error
 	ListPageable(ctx context.Context, q query.Query, req PageableRequest) (*PageableResponse[*T], error)
 	ParseQuery(ctx context.Context, q query.Query) *gorm.DB
 	Context(ctx context.Context) *gorm.DB
 }
 
-type repository[Id IdType, T any] struct {
+type repository[Id IDType, T any] struct {
 	gp orm.GormProvider
 }
 
-func New[Id IdType, T any](gp orm.GormProvider) Repository[Id, T] {
+func New[Id IDType, T any](gp orm.GormProvider) Repository[Id, T] {
 	return &repository[Id, T]{
 		gp: gp,
 	}
 }
 
-func (r *repository[Id, T]) FindById(ctx context.Context, id Id) (*T, error) {
-	return r.FindOne(ctx, query.ById(id))
+func (r *repository[Id, T]) FindByID(ctx context.Context, id Id) (*T, error) {
+	return r.FindOne(ctx, query.ByID(id))
 }
 
 func (r *repository[Id, T]) FindOne(ctx context.Context, q query.Query) (*T, error) {
@@ -72,8 +70,8 @@ func (r *repository[Id, T]) SaveAll(ctx context.Context, ts []*T) error {
 	return r.Context(ctx).Save(ts).Error
 }
 
-func (r *repository[Id, T]) DeleteById(ctx context.Context, id Id) error {
-	return r.Delete(ctx, query.ById(id))
+func (r *repository[Id, T]) DeleteByID(ctx context.Context, id Id) error {
+	return r.Delete(ctx, query.ByID(id))
 }
 
 func (r *repository[Id, T]) Delete(ctx context.Context, q query.Query) error {
@@ -113,7 +111,6 @@ func (r *repository[Id, T]) ListPageable(ctx context.Context, q query.Query, req
 		Data:       found,
 		TotalCount: int(count),
 	}, nil
-
 }
 
 func (r *repository[Id, T]) ParseQuery(ctx context.Context, q query.Query) *gorm.DB {

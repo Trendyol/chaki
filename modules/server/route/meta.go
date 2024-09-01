@@ -1,8 +1,9 @@
 package route
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"reflect"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type Meta struct {

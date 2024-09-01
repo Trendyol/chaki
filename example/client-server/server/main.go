@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/logger"
 	"github.com/Trendyol/chaki/modules/server"
@@ -23,7 +24,6 @@ func main() {
 	if err := app.Start(); err != nil {
 		logger.Fatal(err)
 	}
-
 }
 
 type serverController struct {
@@ -47,7 +47,8 @@ func (ct *serverController) Routes() []route.Route {
 		route.Get("/greet", ct.greetHandler).Name("Greet Route"),
 		route.Get("/query", ct.greetWithQuery).Name("Greet with query"),
 		route.Get("/param/:text", ct.greetWithParam).Name("Greet with param"),
-		route.Post("/body", ct.greetWithBody).Name("Greet with body")}
+		route.Post("/body", ct.greetWithBody).Name("Greet with body"),
+	}
 }
 
 func (ct *serverController) greetHandler(_ context.Context, _ struct{}) (string, error) {

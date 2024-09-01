@@ -17,7 +17,7 @@ func ByIn[T any](field string, val []T) Query {
 	return byMatch(field, "IN", val)
 }
 
-func ById[T any](id T) Query {
+func ByID[T any](id T) Query {
 	return func(d *gorm.DB) *gorm.DB { return d.Where(id) }
 }
 

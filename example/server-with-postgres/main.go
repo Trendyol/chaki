@@ -63,7 +63,7 @@ func (c *HelloController) Routes() []route.Route {
 }
 
 func (c *HelloController) getFoo(ctx context.Context, req getFooReq) (*foo, error) {
-	logger.From(ctx).Info("trace id and spand id will be logged wiht message")
+	logger.From(ctx).Info("trace id and spand id will be logged with message")
 	return c.repo.getFoo(ctx, req.Id)
 }
 

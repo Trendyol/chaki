@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/gofiber/fiber/v2"
 )

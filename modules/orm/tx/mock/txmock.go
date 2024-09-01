@@ -7,8 +7,7 @@ import (
 	"github.com/Trendyol/chaki/modules/orm/tx"
 )
 
-type transactioner struct {
-}
+type transactioner struct{}
 
 func New() tx.Transactioner {
 	return &transactioner{}
