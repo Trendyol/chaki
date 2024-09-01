@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/as"
 	"github.com/Trendyol/chaki/module"
 	"github.com/Trendyol/chaki/modules/server/common"
@@ -19,10 +20,15 @@ var (
 	asMiddlewareGroup = as.Struct[common.MiddlewareGroup]("middlewaregroups")
 )
 
-func Module() *module.Module {
+func Module(option ...Option) *module.Module {
+	opts := buildOptions(option...)
+
 	m := module.New("server")
 
 	m.Provide(
+		// provide options
+		chaki.Valuer(opts),
+
 		// create registries
 		asController.Handler(parseControllers),
 

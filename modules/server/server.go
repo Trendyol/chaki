@@ -81,7 +81,7 @@ func defaultFiber(
 	mws []fiber.Handler,
 	wrappers []common.FiberAppWrapper,
 	groups []common.MiddlewareGroup,
-	eh fiber.ErrorHandler,
+	opts *options,
 ) *fiber.App {
 	setDefaultFiberConfigs(cfg)
 	serverCfg := cfg.Of("server")
@@ -91,7 +91,7 @@ func defaultFiber(
 		ReadBufferSize: serverCfg.GetInt("readbuffersize"),
 		ReadTimeout:    serverCfg.GetDuration("readtimeout"),
 		WriteTimeout:   serverCfg.GetDuration("writetimeout"),
-		ErrorHandler:   eh,
+		ErrorHandler:   opts.errHandler,
 	})
 
 	if serverCfg.Exists("cors") {
