@@ -5,14 +5,14 @@ import (
 )
 
 type configOptions struct {
-	disabled       bool
-	path           string
 	referencePaths map[string]string
+	path           string
+	disabled       bool
 }
 
 type options struct {
-	timeout       time.Duration
 	configOptions configOptions
+	timeout       time.Duration
 }
 
 func getOptions(opt ...Option) *options {
