@@ -7,22 +7,19 @@ import (
 	"github.com/Trendyol/chaki/module"
 	"github.com/Trendyol/chaki/modules/kafka/consumer"
 	"github.com/Trendyol/chaki/modules/kafka/producer"
+	otelmodule "github.com/Trendyol/chaki/modules/otel"
 	"go.opentelemetry.io/otel/trace"
 )
 
-const moduleName = "chaki-otel-kafka"
-
-func Module() *module.Module {
-	m := module.New(moduleName)
-
-	m.Provide(
+func WithKafka() otelmodule.Option {
+	m := module.NewSubModule().Provide(
 		newSpanBuilder,
 		newConsumerInterceptor,
 		newProducerInterceptor,
 		newBatchConsumerInterceptor,
 	)
 
-	return m
+	return otelmodule.WithSubModule(m)
 }
 
 func newConsumerInterceptor(sb *spanBuilder) consumer.Interceptor {

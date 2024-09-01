@@ -1,31 +1,41 @@
 package otel
 
-import "context"
+import (
+	"context"
+
+	"github.com/Trendyol/chaki/module"
+)
 
 type CloseFunc func(context.Context) error
 
 type InitFunc func() CloseFunc
 
 type options struct {
-	initFunc InitFunc
+	initFunc   InitFunc
+	subModules []*module.SubModule
 }
 
 type Option interface {
-	Apply(*options) *options
+	Apply(*options)
 }
 
-type withOption func(*options) *options
+type withOption func(*options)
 
-func (wf withOption) Apply(opts *options) *options {
-	return wf(opts)
+func (wf withOption) Apply(opts *options) {
+	wf(opts)
 }
 
 var _ Option = withOption(nil)
 
 func WithInitFunc(f InitFunc) Option {
-	return withOption(func(o *options) *options {
+	return withOption(func(o *options) {
 		o.initFunc = f
-		return o
+	})
+}
+
+func WithSubModule(sub ...*module.SubModule) Option {
+	return withOption(func(o *options) {
+		o.subModules = append(o.subModules, sub...)
 	})
 }
 
@@ -33,7 +43,7 @@ func applyOptions(opts ...Option) *options {
 	o := &options{}
 
 	for _, opt := range opts {
-		o = opt.Apply(o)
+		opt.Apply(o)
 	}
 
 	return o

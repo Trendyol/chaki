@@ -5,15 +5,15 @@ import (
 
 	"github.com/Trendyol/chaki/module"
 	clientcommon "github.com/Trendyol/chaki/modules/client/common"
+	otelmodule "github.com/Trendyol/chaki/modules/otel"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
 
-const ModuleName = "chaki-otel-client"
-
-func Module() *module.Module {
-	return module.New(ModuleName).Provide(newClientRoundTripperWrapper)
+func WithClient() otelmodule.Option {
+	m := module.NewSubModule().Provide(newClientRoundTripperWrapper)
+	return otelmodule.WithSubModule(m)
 }
 
 func newClientRoundTripperWrapper(tp trace.TracerProvider, tmp propagation.TextMapPropagator) clientcommon.RoundTripperWrapper {

@@ -2,6 +2,7 @@ package otelserver
 
 import (
 	"github.com/Trendyol/chaki/module"
+	otelmodule "github.com/Trendyol/chaki/modules/otel"
 	otelcommon "github.com/Trendyol/chaki/modules/otel/common"
 	servercommon "github.com/Trendyol/chaki/modules/server/common"
 	"github.com/gofiber/contrib/otelfiber/v2"
@@ -9,10 +10,9 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-const ModuleName = "chaki-otel-server"
-
-func Module() *module.Module {
-	return module.New(ModuleName).Provide(newMiddlewareGroup)
+func WithServer() otelmodule.Option {
+	m := module.NewSubModule().Provide(newMiddlewareGroup)
+	return otelmodule.WithSubModule(m)
 }
 
 func newMiddlewareGroup() servercommon.MiddlewareGroup {

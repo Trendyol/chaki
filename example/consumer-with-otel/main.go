@@ -17,8 +17,9 @@ func main() {
 	)
 
 	app.Use(
-		otel.Module(),
-		otelkafka.Module(),
+		otel.Module(
+			otelkafka.WithKafka(),
+		),
 		kafka.Module(),
 	)
 
