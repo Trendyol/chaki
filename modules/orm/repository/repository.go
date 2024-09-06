@@ -62,12 +62,12 @@ func (r *repository[Id, T]) Update(ctx context.Context, q query.Query, update an
 }
 
 func (r *repository[Id, T]) Save(ctx context.Context, t *T) (*T, error) {
-	err := r.Context(ctx).Clauses(clause.Returning{}).Save(t).Error
+	err := r.gp.Get(ctx).Clauses(clause.Returning{}).Save(t).Error
 	return t, err
 }
 
 func (r *repository[Id, T]) SaveAll(ctx context.Context, ts []*T) error {
-	return r.Context(ctx).Save(ts).Error
+	return r.gp.Get(ctx).Save(ts).Error
 }
 
 func (r *repository[Id, T]) DeleteByID(ctx context.Context, id Id) error {
