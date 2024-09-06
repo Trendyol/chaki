@@ -112,7 +112,7 @@ func build[Req, Res any](f HandlerFunc[Req, Res], defaultStatus ...int) fiber.Ha
 		if rp, ok := any(res).(response.Responser); ok {
 			resp = rp.ToResponse()
 		} else {
-			resp = res
+			resp = response.Success(res)
 		}
 
 		if st, ok := any(res).(response.Stature); ok {
