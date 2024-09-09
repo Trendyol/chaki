@@ -14,7 +14,7 @@ const (
 	keyEnabled = "enabled"
 
 	keyAppName = "appname"
-	keyLicence = "licence"
+	keyLicense = "license"
 
 	keyAppLogEnabled = "logenabled"
 )
@@ -44,7 +44,7 @@ func newNr(cfg *config.Config, opts *options) (*newrelic.Application, error) {
 		opts.nrOptions,
 		newrelic.ConfigEnabled(true),
 		newrelic.ConfigAppName(nrcfg.GetString(keyAppName)),
-		newrelic.ConfigLicense(nrcfg.GetString(keyAppName)),
+		newrelic.ConfigLicense(nrcfg.GetString(keyLicense)),
 		newrelic.ConfigAppLogEnabled(nrcfg.GetBool(keyAppLogEnabled)),
 	)
 
@@ -53,6 +53,6 @@ func newNr(cfg *config.Config, opts *options) (*newrelic.Application, error) {
 
 func setDefaultConfigs(cfg *config.Config) {
 	cfg.SetDefault(keyEnabled, false)
-	cfg.SetDefault(keyLicence, "")
+	cfg.SetDefault(keyLicense, "")
 	cfg.SetDefault(keyAppLogEnabled, true)
 }
