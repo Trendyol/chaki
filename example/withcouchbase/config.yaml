@@ -1,0 +1,3 @@
+couchbase:
+  host: "<cb_host>"
+  bucketname: "foo_bucket"
