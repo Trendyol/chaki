@@ -81,18 +81,25 @@ func defaultFiber(
 	mws []fiber.Handler,
 	wrappers []common.FiberAppWrapper,
 	groups []common.MiddlewareGroup,
+	configWrappers []common.FiberConfigWrapper,
 	opts *options,
 ) *fiber.App {
 	setDefaultFiberConfigs(cfg)
 	serverCfg := cfg.Of("server")
 
-	app := fiber.New(fiber.Config{
+	fibercfg := fiber.Config{
 		BodyLimit:      serverCfg.GetInt("bodylimit"),
 		ReadBufferSize: serverCfg.GetInt("readbuffersize"),
 		ReadTimeout:    serverCfg.GetDuration("readtimeout"),
 		WriteTimeout:   serverCfg.GetDuration("writetimeout"),
 		ErrorHandler:   opts.errHandler,
-	})
+	}
+
+	for _, fwrapper := range configWrappers {
+		fibercfg = fwrapper(fibercfg)
+	}
+
+	app := fiber.New(fibercfg)
 
 	if serverCfg.Exists("cors") {
 		app.Use(middlewares.CORSMiddleware(serverCfg.Of("cors")))
