@@ -24,12 +24,21 @@ func NewFactory(cfg *config.Config, wrappers []DriverWrapper) *Factory {
 	}
 }
 
-func (f *Factory) Get(name string, errDecoder ErrDecoder, driverWrappers ...DriverWrapper) *Base {
+func (f *Factory) Get(name string, opts ...Option) *Base {
+	cOpts := &options{
+		errDecoder:     DefaultErrDecoder(name),
+		driverWrappers: []DriverWrapper{},
+	}
+
+	for _, opt := range opts {
+		opt.Apply(cOpts)
+	}
+
 	return &Base{
 		driver: newDriverBuilder(f.cfg.Of("client").Of(name)).
-			AddErrDecoder(errDecoder).
+			AddErrDecoder(cOpts.errDecoder).
 			AddUpdaters(f.baseWrappers...).
-			AddUpdaters(driverWrappers...).
+			AddUpdaters(cOpts.driverWrappers...).
 			build(),
 		name: name,
 	}
