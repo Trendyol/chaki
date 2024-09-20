@@ -115,7 +115,9 @@ func defaultFiber(
 		app.Use(mw)
 	}
 
-	app.Use(middlewares.Log())
+	if serverCfg.GetBool("logging") {
+		app.Use(middlewares.Log())
+	}
 
 	for _, wrapper := range wrappers {
 		app = wrapper(app)
@@ -132,6 +134,7 @@ func setDefaultFiberConfigs(cfg *config.Config) {
 	serverCfg.SetDefault("healthcheck.endpoints.readiness", "/__monitor/ready")
 	serverCfg.SetDefault("readtimeout", "10s")
 	serverCfg.SetDefault("writetimeout", "10s")
+	serverCfg.SetDefault("logging", false)
 }
 
 func getSwaggerDefs(rs []*registry) []swagger.EndpointDef {
