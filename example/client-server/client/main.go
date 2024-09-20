@@ -9,6 +9,7 @@ import (
 	"github.com/Trendyol/chaki/modules/server"
 	"github.com/Trendyol/chaki/modules/server/controller"
 	"github.com/Trendyol/chaki/modules/server/route"
+	"github.com/Trendyol/chaki/modules/swagger"
 )
 
 func main() {
@@ -17,6 +18,8 @@ func main() {
 	app.Use(
 		client.Module(),
 		server.Module(),
+
+		swagger.Module(),
 	)
 
 	app.Provide(
