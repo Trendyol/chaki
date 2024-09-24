@@ -14,7 +14,9 @@ type exampleClient struct {
 
 func newClient(f *client.Factory) *exampleClient {
 	return &exampleClient{
-		Base: f.Get("example-client"),
+		Base: f.Get("example-client",
+			client.WithErrDecoder(customErrorDecoder),
+			client.WithDriverWrappers(HeaderWrapper())),
 	}
 }
 

@@ -20,6 +20,7 @@ func newDriverBuilder(cfg *config.Config) *driverBuilder {
 	d := resty.New().
 		SetBaseURL(cfg.GetString("baseurl")).
 		SetTimeout(cfg.GetDuration("timeout")).
+
 		// Debug mode provides a logging, but it's not in the same format with our logger.
 		SetDebug(cfg.GetBool("debug"))
 	return &driverBuilder{
