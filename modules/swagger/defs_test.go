@@ -15,6 +15,8 @@ type testStruct struct {
 	Field5 *string         `json:"field5"`
 	Field6 map[string]int  `json:"field6" validate:"required"`
 	Field7 string          `json:"-"`
+	Field8 uint32          `json:"field8"`
+	Field9 float64         `json:"field9"`
 }
 
 type anotherStruct struct {
@@ -119,6 +121,35 @@ func TestBuildModelDefinition(t *testing.T) {
 		if _, ok := props.(m)["field7"]; ok {
 			t.Errorf("field7 is not expected in defs as it tagged with '-'")
 		}
+
+		if p, ok := props.(m)["field8"]; !ok {
+			t.Errorf("Expected field8 in properties, not found")
+		} else {
+			if field, ok := p.(m); ok {
+				if field["type"] != "integer" {
+					t.Errorf("Expected field8 to be of type int")
+				}
+
+				if field["format"] != "uint32" {
+					t.Errorf("Expected field8 to be of format uint32")
+				}
+			}
+		}
+
+		if p, ok := props.(m)["field9"]; !ok {
+			t.Errorf("Expected field9 in properties, not found")
+		} else {
+			if field, ok := p.(m); ok {
+				if field["type"] != "number" {
+					t.Errorf("Expected field9 to be of type number")
+				}
+
+				if field["format"] != "float64" {
+					t.Errorf("Expected field9 to be of format float64")
+				}
+			}
+		}
+
 	} else {
 		t.Errorf("Expected properties to be a map, got %T", defs["testStruct"].(m)["properties"])
 	}
