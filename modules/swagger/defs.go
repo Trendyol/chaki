@@ -52,7 +52,7 @@ func buildModelDefinition(defs m, t reflect.Type, isReq bool) {
 			buildModelDefinition(defs, ft.Elem(), isReq)
 		}
 
-		if !isReq || f.Tag.Get("json") != "" {
+		if !isReq || f.Tag.Get("json") != "" && f.Tag.Get("json") != "-" {
 			smp[getFieldName(f)] = getPropertyField(f.Type)
 
 			if vts, ok := f.Tag.Lookup("validate"); isReq && ok {
