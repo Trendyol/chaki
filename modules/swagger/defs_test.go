@@ -51,7 +51,7 @@ func TestBuildDefinitions(t *testing.T) {
 	}
 }
 
-func TestBuildModelDefinition(t *testing.T) {
+func TestBuildModelDefinition(t *testing.T) { //nolint:gocyclo
 	mockType := reflect.TypeOf(testStruct{})
 	defs := make(m)
 
@@ -149,7 +149,6 @@ func TestBuildModelDefinition(t *testing.T) {
 				}
 			}
 		}
-
 	} else {
 		t.Errorf("Expected properties to be a map, got %T", defs["testStruct"].(m)["properties"])
 	}
