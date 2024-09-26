@@ -15,9 +15,17 @@ type driverBuilder struct {
 }
 
 func newDriverBuilder(cfg *config.Config) *driverBuilder {
+	setDefaults(cfg)
+
+	d := resty.New().
+		SetBaseURL(cfg.GetString("baseurl")).
+		SetTimeout(cfg.GetDuration("timeout")).
+
+		// Debug mode provides a logging, but it's not in the same format with our logger.
+		SetDebug(cfg.GetBool("debug"))
 	return &driverBuilder{
 		cfg: cfg,
-		d:   resty.New().SetBaseURL(cfg.GetString("baseurl")),
+		d:   d,
 	}
 }
 
@@ -32,7 +40,9 @@ func (b *driverBuilder) AddUpdaters(wrappers ...DriverWrapper) *driverBuilder {
 }
 
 func (b *driverBuilder) build() *resty.Client {
-	b.useLogging()
+	if b.cfg.GetBool("logging") {
+		b.useLogging()
+	}
 
 	for _, upd := range b.updaters {
 		b.d = upd(b.d)
@@ -67,4 +77,10 @@ func (b *driverBuilder) useLogging() {
 		)
 		return nil
 	})
+}
+
+func setDefaults(cfg *config.Config) {
+	cfg.SetDefault("timeout", "5s")
+	cfg.SetDefault("debug", false)
+	cfg.SetDefault("logging", false)
 }

@@ -11,10 +11,11 @@ import (
 const (
 	CorrelationIDKey = "x-correlationId"
 	ExecutorUserKey  = "x-executor-user"
-	TraceIDKey       = "trace-id"
-	SpanIDKey        = "span-id"
-	AgentNameKey     = "x-agent-name"
+	AgentNameKey     = "x-agentname"
 	OwnerKey         = "x-owner"
+
+	TraceIDKey = "trace-id"
+	SpanIDKey  = "span-id"
 )
 
 var (

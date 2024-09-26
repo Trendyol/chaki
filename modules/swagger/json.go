@@ -74,9 +74,16 @@ func withDefinitionPrefix(s string) string {
 }
 
 func getPrimitiveType(t reflect.Type) m {
-	if kp := t.Kind().String(); strings.HasPrefix(kp, "int") {
+	if kp := t.Kind().String(); strings.HasPrefix(kp, "int") || strings.HasPrefix(kp, "uint") {
 		return m{
 			"type":   "integer",
+			"format": kp,
+		}
+	}
+
+	if kp := t.Kind().String(); strings.HasPrefix(kp, "float") {
+		return m{
+			"type":   "number",
 			"format": kp,
 		}
 	}
