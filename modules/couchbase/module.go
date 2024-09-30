@@ -1,6 +1,7 @@
 package couchbase
 
 import (
+	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/as"
 	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/module"
@@ -12,10 +13,12 @@ var (
 	asCouchbaseTracers      = as.Interface[gocb.RequestTracer]("gocbrequesttracers")
 )
 
-func Module() *module.Module {
+func Module(option ...Option) *module.Module {
 	m := module.New()
 
 	m.Provide(
+		chaki.Valuer(option),
+		buildOptions,
 		asClusterOptionsWrapper.Grouper(),
 		asCouchbaseTracers.Grouper(),
 		newCluster,
@@ -31,11 +34,11 @@ func Module() *module.Module {
 	return m
 }
 
-func newCluster(cfg *config.Config, wrappers []ClusterOptionsWrapper, tracers []gocb.RequestTracer) (*gocb.Cluster, error) {
+func newCluster(cfg *config.Config, opts *options) (*gocb.Cluster, error) {
 	cbcfg := cfg.Of("couchbase")
 	setDefaultConfigs(cbcfg)
 
-	opts := gocb.ClusterOptions{
+	clutserOptions := gocb.ClusterOptions{
 		Username: cbcfg.GetString("username"),
 		Password: cbcfg.GetString("password"),
 		TimeoutsConfig: gocb.TimeoutsConfig{
@@ -51,13 +54,13 @@ func newCluster(cfg *config.Config, wrappers []ClusterOptionsWrapper, tracers []
 		},
 	}
 
-	for _, wr := range wrappers {
-		opts = wr(opts)
+	for _, wr := range opts.clusterOptionsWrappers {
+		clutserOptions = wr(clutserOptions)
 	}
 
-	if len(tracers) > 0 {
-		opts.Tracer = newJoinedTracer(tracers)
+	if len(opts.tracers) > 0 {
+		clutserOptions.Tracer = newJoinedTracer(opts.tracers)
 	}
 
-	return gocb.Connect(cbcfg.GetString("host"), opts)
+	return gocb.Connect(cbcfg.GetString("host"), clutserOptions)
 }
