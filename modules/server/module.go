@@ -13,11 +13,12 @@ import (
 )
 
 var (
-	asController      = as.Interface[controller.Controller]("servercontrollers")
-	asMiddleware      = as.Struct[fiber.Handler]("servermiddleware")
-	asValidationRule  = as.Interface[validation.Rule]("validationrules")
-	asFiberAppWrapper = as.Struct[common.FiberAppWrapper]("fiberappwrappers")
-	asMiddlewareGroup = as.Struct[common.MiddlewareGroup]("middlewaregroups")
+	asController         = as.Interface[controller.Controller]("servercontrollers")
+	asMiddleware         = as.Struct[fiber.Handler]("servermiddleware")
+	asValidationRule     = as.Interface[validation.Rule]("validationrules")
+	asFiberAppWrapper    = as.Struct[common.FiberAppWrapper]("fiberappwrappers")
+	asMiddlewareGroup    = as.Struct[common.MiddlewareGroup]("middlewaregroups")
+	asFiberConfigWrapper = as.Struct[common.FiberConfigWrapper]("fiberconfigwrappers")
 )
 
 func Module(option ...Option) *module.Module {
@@ -43,6 +44,7 @@ func Module(option ...Option) *module.Module {
 
 		asFiberAppWrapper.Grouper(),
 		asMiddlewareGroup.Grouper(),
+		asFiberConfigWrapper.Grouper(),
 
 		// server
 		defaultFiber,
@@ -74,6 +76,10 @@ func Module(option ...Option) *module.Module {
 		module.ProvideHook{
 			Match: asMiddlewareGroup.Match,
 			Wrap:  asMiddlewareGroup.Value,
+		},
+		module.ProvideHook{
+			Match: asFiberConfigWrapper.Match,
+			Wrap:  asFiberConfigWrapper.Value,
 		},
 	)
 

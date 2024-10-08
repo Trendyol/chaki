@@ -6,6 +6,7 @@ import (
 )
 
 type (
-	MiddlewareGroup = []fiber.Handler
-	FiberAppWrapper = wrapper.Wrapper[*fiber.App]
+	MiddlewareGroup    = []fiber.Handler
+	FiberAppWrapper    = wrapper.Wrapper[*fiber.App]
+	FiberConfigWrapper = wrapper.Wrapper[fiber.Config]
 )
