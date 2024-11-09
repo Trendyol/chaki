@@ -83,4 +83,7 @@ func setDefaults(cfg *config.Config) {
 	cfg.SetDefault("timeout", "5s")
 	cfg.SetDefault("debug", false)
 	cfg.SetDefault("logging", false)
+
+	setDefaultCircuitConfigs(cfg)
+	setDefaultRetryConfigs(cfg)
 }
