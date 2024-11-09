@@ -2,17 +2,20 @@ package client
 
 import (
 	"context"
+
 	"github.com/Trendyol/chaki/config"
 	"github.com/afex/hystrix-go/hystrix"
+	"github.com/go-resty/resty/v2"
 )
 
 type (
-	CircuitFunc        func(context.Context) error
+	CircuitFunc        func(context.Context) (*resty.Response, error)
 	CircuitErrorFunc   func(context.Context, error) error
 	CircuitErrorFilter func(error) (bool, error)
 
 	circuitConfig struct {
 		Name                   string
+		enabled                bool
 		Timeout                int
 		MaxConcurrentRequests  int
 		ErrorPercentThreshold  int
@@ -28,7 +31,8 @@ type (
 
 func newCircuit(cfg *config.Config, name string) *circuit {
 	c := &circuitConfig{
-		Name: name,
+		Name:    name,
+		enabled: cfg.GetBool("circuit.enabled"),
 	}
 
 	if cfg.GetBool("circuit.enabled") {
@@ -56,13 +60,19 @@ func newCircuit(cfg *config.Config, name string) *circuit {
 	}
 }
 
-func (c *circuit) do(ctx context.Context, fn CircuitFunc, fallback func(context.Context, error) error, fi ...CircuitErrorFilter) error {
+func (c *circuit) do(ctx context.Context, fn CircuitFunc, fallback func(context.Context, error) error, fi ...CircuitErrorFilter) (*resty.Response, error) {
+	if c.config == nil || !c.config.enabled {
+		return fn(ctx)
+	}
+
 	var e error
 	var ok bool
+	var resp *resty.Response
 
 	function := func(ctx context.Context) error {
 
-		err := fn(ctx)
+		var err error
+		resp, err = fn(ctx)
 
 		for _, filter := range fi {
 			if ok, e = filter(err); ok {
@@ -80,14 +90,14 @@ func (c *circuit) do(ctx context.Context, fn CircuitFunc, fallback func(context.
 	hystrixErr := hystrix.DoC(ctx, c.config.Name, function, fallback)
 
 	if hystrixErr != nil {
-		return hystrixErr
+		return nil, hystrixErr
 	}
 
 	if e != nil {
-		return e
+		return nil, e
 	}
 
-	return nil
+	return resp, nil
 }
 
 func defaultCircuitErrorFunc(_ context.Context, err error) error {

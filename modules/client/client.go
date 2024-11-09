@@ -9,7 +9,6 @@ import (
 
 type Base struct {
 	name    string
-	cfg     *config.Config
 	driver  *resty.Client
 	circuit *circuit
 	rc      *retryConfig

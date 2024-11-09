@@ -1,8 +1,9 @@
 package client
 
 import (
-	"github.com/Trendyol/chaki/config"
 	"time"
+
+	"github.com/Trendyol/chaki/config"
 )
 
 const (

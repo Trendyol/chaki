@@ -3,11 +3,12 @@ package client
 import (
 	"context"
 	"errors"
-	"github.com/go-resty/resty/v2"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
-var unsupportedMethod = errors.New("unsupported method by the chaki client")
+var errUnsupportedMethod = errors.New("unsupported method by the chaki client")
 
 const (
 	GET = iota
@@ -15,7 +16,6 @@ const (
 	PATCH
 	PUT
 	DELETE
-	CUSTOM
 )
 
 type Request struct {
@@ -39,34 +39,36 @@ func (r *Request) WithErrorFilter(f CircuitErrorFilter) *Request {
 	return r
 }
 
-func (r *Request) Post(url string) error {
+func (r *Request) Post(url string) (*resty.Response, error) {
 	r.f = r.functionResolver(url, POST)
 	return r.process()
 }
 
-func (r *Request) Get(url string) error {
+func (r *Request) Get(url string) (*resty.Response, error) {
 	r.f = r.functionResolver(url, GET)
 	return r.process()
 }
 
-func (r *Request) Delete(url string) error {
+func (r *Request) Delete(url string) (*resty.Response, error) {
 	r.f = r.functionResolver(url, DELETE)
 	return r.process()
 }
 
-func (r *Request) Put(url string) error {
+func (r *Request) Put(url string) (*resty.Response, error) {
 	r.f = r.functionResolver(url, PUT)
 	return r.process()
 }
 
-func (r *Request) Patch(url string) error {
+func (r *Request) Patch(url string) (*resty.Response, error) {
 	r.f = r.functionResolver(url, PATCH)
 	return r.process()
 }
 
-func (r *Request) process() error {
-	err := r.send()
+func (r *Request) process() (*resty.Response, error) {
+	resp, err := r.send()
 	delay := r.Interval
+
+outer:
 	for i := 0; i < r.Count && err != nil; i++ {
 
 		time.Sleep(delay)
@@ -80,42 +82,44 @@ func (r *Request) process() error {
 		select {
 		case <-r.Context().Done():
 			err = r.Context().Err()
-			break
+			break outer
 		default:
 		}
 
-		err = r.send()
+		resp, err = r.send()
 	}
 
-	return err
+	return resp, err
 }
 
-func (r *Request) send() error {
+func (r *Request) send() (*resty.Response, error) {
 	return r.circuit.do(r.Context(), r.f, r.errF, r.errorFilters...)
 }
 
 func (r *Request) functionResolver(url string, method int) CircuitFunc {
-	return func(ctx context.Context) error {
+	return func(ctx context.Context) (*resty.Response, error) {
+		var resp *resty.Response
 		var err error
 
 		switch method {
 		case GET:
-			_, err = r.Request.Get(url)
+			resp, err = r.Request.Get(url)
 		case POST:
-			_, err = r.Request.Post(url)
+			resp, err = r.Request.Post(url)
 		case PUT:
-			_, err = r.Request.Put(url)
+			resp, err = r.Request.Put(url)
 		case PATCH:
-			_, err = r.Request.Patch(url)
+			resp, err = r.Request.Patch(url)
 		case DELETE:
-			_, err = r.Request.Delete(url)
+			resp, err = r.Request.Delete(url)
 		default:
-			return unsupportedMethod
+			return nil, errUnsupportedMethod
 		}
 
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return nil
+
+		return resp, nil
 	}
 }
