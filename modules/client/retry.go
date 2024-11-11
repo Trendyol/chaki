@@ -22,9 +22,9 @@ type retryConfig struct {
 	DelayType DelayType     `json:"delayType"`
 }
 
-var retryPresetMap = store.NewBucket[string, *retryConfig](func(k string) *retryConfig { return nil })
-
 var (
+	retryPresetMap = store.NewBucket[string, *retryConfig](func(k string) *retryConfig { return nil })
+
 	defaultRetryConfig = &retryConfig{
 		Name:      "default",
 		Count:     3,
@@ -67,15 +67,6 @@ var (
 		MaxDelay:  2 * time.Second,
 		DelayType: ExponentialDelay,
 	}
-
-	predefinedRetryPresets = []*retryConfig{
-		defaultRetryConfig,
-		exponentialRetryConfig,
-		aggresiveRetryConfig,
-		aggresiveExponentialRetryConfig,
-		relaxedRetryConfig,
-		relaxedExponentialConfig,
-	}
 )
 
 func getRetryConfigs(cfg *config.Config) *retryConfig {
@@ -110,6 +101,15 @@ func setDefaultRetryConfigs(cfg *config.Config) {
 }
 
 func initRetryPresets(cfg *config.Config) {
+	predefinedRetryPresets := []*retryConfig{
+		defaultRetryConfig,
+		exponentialRetryConfig,
+		aggresiveRetryConfig,
+		aggresiveExponentialRetryConfig,
+		relaxedRetryConfig,
+		relaxedExponentialConfig,
+	}
+
 	for _, rc := range predefinedRetryPresets {
 		retryPresetMap.Set(rc.Name, rc)
 	}

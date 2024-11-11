@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Trendyol/chaki/config"
+	"github.com/Trendyol/chaki/util/store"
 	"github.com/afex/hystrix-go/hystrix"
 	"github.com/go-resty/resty/v2"
 )
@@ -26,24 +27,44 @@ type (
 
 	circuit struct {
 		config *circuitConfig
+		name   string
 	}
 )
 
+var (
+	defaultCircuitConfig = &circuitConfig{
+		Name:                   "default",
+		Timeout:                5000,
+		MaxConcurrentRequests:  100,
+		ErrorPercentThreshold:  50,
+		RequestVolumeThreshold: 20,
+		SleepWindow:            5000,
+	}
+
+	aggressiveCircuitConfig = &circuitConfig{
+		Name:                   "aggressive",
+		Timeout:                2000,
+		MaxConcurrentRequests:  50,
+		ErrorPercentThreshold:  25,
+		RequestVolumeThreshold: 10,
+		SleepWindow:            3000,
+	}
+
+	relaxedCircuitConfig = &circuitConfig{
+		Name:                   "relaxed",
+		Timeout:                10000,
+		MaxConcurrentRequests:  200,
+		ErrorPercentThreshold:  75,
+		RequestVolumeThreshold: 40,
+		SleepWindow:            7000,
+	}
+
+	circuitPresetMap = store.NewBucket[string, *circuitConfig](func(k string) *circuitConfig { return nil })
+)
+
 func newCircuit(cfg *config.Config, name string) *circuit {
-	c := &circuitConfig{
-		Name:    name,
-		enabled: cfg.GetBool("circuit.enabled"),
-	}
+	c := getCircuitConfigs(cfg)
 
-	if cfg.GetBool("circuit.enabled") {
-		c, err := config.ToStruct[*circuitConfig](cfg, "circuit")
-		c.Name = name
-		if err != nil {
-			panic("could not convert the circuit for client:" + name + ". check your configuration.")
-		}
-	}
-
-	// TODO: Presets
 	hystrixConfig := hystrix.CommandConfig{
 		Timeout:                c.Timeout,
 		MaxConcurrentRequests:  c.MaxConcurrentRequests,
@@ -57,6 +78,7 @@ func newCircuit(cfg *config.Config, name string) *circuit {
 
 	return &circuit{
 		config: c,
+		name:   name,
 	}
 }
 
@@ -111,4 +133,45 @@ func setDefaultCircuitConfigs(cfg *config.Config) {
 	cfg.SetDefault("circuit.requestVolumeThreshold", 20)
 	cfg.SetDefault("circuit.sleepWindow", 5000)
 	cfg.SetDefault("circuit.errorPercentThreshold", 50)
+}
+
+func initCircuitPresets(cfg *config.Config) {
+	presets := []*circuitConfig{
+		defaultCircuitConfig,
+		aggressiveCircuitConfig,
+		relaxedCircuitConfig,
+	}
+
+	for _, cc := range presets {
+		circuitPresetMap.Set(cc.Name, cc)
+	}
+
+	userPresets, err := config.ToStruct[[]*circuitConfig](cfg, "client.circuitPresets")
+	if err != nil {
+		panic(err)
+	}
+	for _, cc := range userPresets {
+		circuitPresetMap.Set(cc.Name, cc)
+	}
+}
+
+func getCircuitConfigs(cfg *config.Config) *circuitConfig {
+	if !cfg.GetBool("circuit.enabled") {
+		return &circuitConfig{}
+	}
+
+	preset := cfg.GetString("circuit.preset")
+	switch preset {
+	case "custom":
+		cc, err := config.ToStruct[*circuitConfig](cfg, "circuit")
+		if err != nil {
+			panic(err)
+		}
+		return cc
+	default:
+		if cc := circuitPresetMap.Get(preset); cc != nil {
+			return cc
+		}
+		panic("unknown circuit breaker preset: " + preset)
+	}
 }
