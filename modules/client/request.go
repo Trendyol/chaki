@@ -3,6 +3,8 @@ package client
 import (
 	"context"
 	"errors"
+	"math"
+	"math/rand"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -68,12 +70,11 @@ func (r *Request) process() (*resty.Response, error) {
 	resp, err := r.send()
 	delay := r.Interval
 
-outer:
 	for i := 0; i < r.Count && err != nil; i++ {
-
-		time.Sleep(delay)
-		if r.DelayType == IncrementalDelay {
-			delay = time.Duration(float64(delay) * r.Multiplier)
+		if r.DelayType == ExponentialDelay {
+			exponentialDelay := delay * time.Duration(math.Pow(2, float64(i)))
+			jitter := time.Duration(rand.Float64() * float64(r.Interval))
+			delay = exponentialDelay + jitter
 			if delay > r.MaxDelay {
 				delay = r.MaxDelay
 			}
@@ -81,12 +82,10 @@ outer:
 
 		select {
 		case <-r.Context().Done():
-			err = r.Context().Err()
-			break outer
-		default:
+			return nil, r.Context().Err()
+		case <-time.After(delay):
+			resp, err = r.send()
 		}
-
-		resp, err = r.send()
 	}
 
 	return resp, err

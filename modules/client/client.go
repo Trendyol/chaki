@@ -20,6 +20,7 @@ type Factory struct {
 }
 
 func NewFactory(cfg *config.Config, wrappers []DriverWrapper) *Factory {
+	initRetryPresets(cfg)
 	return &Factory{
 		cfg:          cfg,
 		baseWrappers: wrappers,
