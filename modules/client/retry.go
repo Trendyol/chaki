@@ -7,23 +7,25 @@ import (
 	"github.com/Trendyol/chaki/util/store"
 )
 
-type DelayType string
+type (
+	DelayType string
+
+	retryConfig struct {
+		Name      string        `json:"name"`
+		Count     int           `json:"count"`
+		Interval  time.Duration `json:"interval"`
+		MaxDelay  time.Duration `json:"maxDelay"`
+		DelayType DelayType     `json:"delayType"`
+	}
+)
 
 const (
 	ConstantDelay    DelayType = "constant"
 	ExponentialDelay DelayType = "exponential"
 )
 
-type retryConfig struct {
-	Name      string        `json:"name"`
-	Count     int           `json:"count"`
-	Interval  time.Duration `json:"interval"`
-	MaxDelay  time.Duration `json:"maxDelay"`
-	DelayType DelayType     `json:"delayType"`
-}
-
 var (
-	retryPresetMap = store.NewBucket[string, *retryConfig](func(k string) *retryConfig { return nil })
+	retryPresetMap = store.NewBucket(func(k string) *retryConfig { return nil })
 
 	defaultRetryConfig = &retryConfig{
 		Name:      "default",
@@ -71,7 +73,7 @@ var (
 
 func getRetryConfigs(cfg *config.Config) *retryConfig {
 	if !cfg.GetBool("retry.enabled") {
-		return &retryConfig{}
+		return nil
 	}
 
 	preset := cfg.GetString("retry.preset")

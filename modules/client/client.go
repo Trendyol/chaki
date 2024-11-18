@@ -8,10 +8,8 @@ import (
 )
 
 type Base struct {
-	name    string
-	driver  *resty.Client
-	circuit *circuit
-	rc      *retryConfig
+	name   string
+	driver *resty.Client
 }
 
 type Factory struct {
@@ -46,18 +44,12 @@ func (f *Factory) Get(name string, opts ...Option) *Base {
 			AddErrDecoder(cOpts.errDecoder).
 			AddUpdaters(f.baseWrappers...).
 			AddUpdaters(cOpts.driverWrappers...).
+			setCircuit(getCircuitConfigs(clientCfg)).
+			setRetry(getRetryConfigs(clientCfg)).
 			build(),
-		circuit: newCircuit(clientCfg, name),
-		rc:      getRetryConfigs(clientCfg),
 	}
 }
 
-func (b *Base) Request(ctx context.Context) *Request {
-
-	return &Request{
-		circuit:     b.circuit,
-		Request:     b.driver.R().SetContext(ctx),
-		errF:        defaultCircuitErrorFunc,
-		retryConfig: b.rc,
-	}
+func (b *Base) Request(ctx context.Context) *resty.Request {
+	return b.driver.R().SetContext(ctx)
 }

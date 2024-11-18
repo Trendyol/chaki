@@ -1,6 +1,8 @@
 package client
 
 import (
+	"net/http"
+
 	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/logger"
 	"github.com/go-resty/resty/v2"
@@ -11,6 +13,7 @@ type driverBuilder struct {
 	cfg      *config.Config
 	eh       ErrDecoder
 	d        *resty.Client
+	tr       http.RoundTripper
 	updaters []DriverWrapper
 }
 
@@ -23,9 +26,11 @@ func newDriverBuilder(cfg *config.Config) *driverBuilder {
 
 		// Debug mode provides a logging, but it's not in the same format with our logger.
 		SetDebug(cfg.GetBool("debug"))
+	t := d.GetClient().Transport
 	return &driverBuilder{
 		cfg: cfg,
 		d:   d,
+		tr:  t,
 	}
 }
 
@@ -36,6 +41,27 @@ func (b *driverBuilder) AddErrDecoder(eh ErrDecoder) *driverBuilder {
 
 func (b *driverBuilder) AddUpdaters(wrappers ...DriverWrapper) *driverBuilder {
 	b.updaters = append(b.updaters, wrappers...)
+	return b
+}
+
+func (b *driverBuilder) setRetry(retryConfig *retryConfig) *driverBuilder {
+	if retryConfig == nil {
+		return b
+	}
+
+	tr := newRetryRoundTripper(b.tr, retryConfig)
+	b.d.SetTransport(tr)
+	return b
+}
+
+func (b *driverBuilder) setCircuit(circuitConfig *circuitConfig) *driverBuilder {
+	if circuitConfig == nil {
+		return b
+	}
+
+	tr := newCircuitRoundTripper(b.tr, circuitConfig)
+	b.d.SetTransport(tr)
+
 	return b
 }
 

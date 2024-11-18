@@ -1,36 +1,35 @@
-package client
+package error
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"strings"
-
-	"github.com/go-resty/resty/v2"
 )
 
-type ErrDecoder func(context.Context, *resty.Response) error
-
-type GenericClientError struct {
+type ChakiError struct {
 	ClientName string
 	StatusCode int
 	RawBody    []byte
 	ParsedBody interface{}
 }
 
-func (e GenericClientError) Error() string {
+func (e *ChakiError) Error() string {
 	msg := fmt.Sprintf("Error on client %s (Status %d)", e.ClientName, e.StatusCode)
 	if details := e.extractErrorDetails(); details != "" {
 		msg += ": " + details
 	}
+
 	return msg
 }
 
-func (e GenericClientError) Status() int {
+func (e *ChakiError) Status() int {
 	return e.StatusCode
 }
 
-func (e GenericClientError) extractErrorDetails() string {
+type RandomError interface {
+	Status() int
+}
+
+func (e *ChakiError) extractErrorDetails() string {
 	var details []string
 
 	var extract func(interface{})
@@ -56,27 +55,4 @@ func (e GenericClientError) extractErrorDetails() string {
 	}
 
 	return strings.Join(details, "; ")
-}
-
-func DefaultErrDecoder(name string) ErrDecoder {
-	return func(_ context.Context, res *resty.Response) error {
-		if res.IsSuccess() {
-			return nil
-		}
-
-		apiErr := GenericClientError{
-			ClientName: name,
-			StatusCode: res.StatusCode(),
-			RawBody:    res.Body(),
-		}
-
-		var jsonBody interface{}
-		if err := json.Unmarshal(res.Body(), &jsonBody); err == nil {
-			apiErr.ParsedBody = jsonBody
-		} else {
-			apiErr.ParsedBody = string(res.Body())
-		}
-
-		return apiErr
-	}
 }

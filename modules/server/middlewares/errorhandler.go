@@ -35,5 +35,9 @@ func getCodeFromErr(err error) int {
 		return fErr.Code
 	}
 
+	if sErr := new(interface{ Status() int }); errors.As(err, sErr) {
+		return (*sErr).Status()
+	}
+
 	return fiber.StatusInternalServerError
 }

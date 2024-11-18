@@ -2,21 +2,17 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/util/store"
 	"github.com/afex/hystrix-go/hystrix"
-	"github.com/go-resty/resty/v2"
 )
 
 type (
-	CircuitFunc        func(context.Context) (*resty.Response, error)
-	CircuitErrorFunc   func(context.Context, error) error
-	CircuitErrorFilter func(error) (bool, error)
-
 	circuitConfig struct {
 		Name                   string
-		enabled                bool
+		Enabled                bool
 		Timeout                int
 		MaxConcurrentRequests  int
 		ErrorPercentThreshold  int
@@ -25,10 +21,7 @@ type (
 		Commands               []string
 	}
 
-	circuit struct {
-		config *circuitConfig
-		name   string
-	}
+	contextKey string
 )
 
 var (
@@ -59,75 +52,31 @@ var (
 		SleepWindow:            7000,
 	}
 
-	circuitPresetMap = store.NewBucket[string, *circuitConfig](func(k string) *circuitConfig { return nil })
+	circuitPresetMap = store.NewBucket(func(k string) *circuitConfig { return nil })
 )
 
-func newCircuit(cfg *config.Config, name string) *circuit {
-	c := getCircuitConfigs(cfg)
+const (
+	circuitFallbackKey  contextKey = "fallback"
+	circuitErrFilterKey contextKey = "errorFilter"
+)
 
-	hystrixConfig := hystrix.CommandConfig{
-		Timeout:                c.Timeout,
-		MaxConcurrentRequests:  c.MaxConcurrentRequests,
-		ErrorPercentThreshold:  c.ErrorPercentThreshold,
-		RequestVolumeThreshold: c.RequestVolumeThreshold,
-		SleepWindow:            c.SleepWindow,
-	}
-
-	// TODO: circuit per endpoint?
-	hystrix.ConfigureCommand(name, hystrixConfig)
-
-	return &circuit{
-		config: c,
-		name:   name,
-	}
+func SetFallbackFunc(ctx context.Context, fb func(context.Context, error) error) {
+	context.WithValue(ctx, circuitFallbackKey, fb)
 }
 
-func (c *circuit) do(ctx context.Context, fn CircuitFunc, fallback func(context.Context, error) error, fi ...CircuitErrorFilter) (*resty.Response, error) {
-	if c.config == nil || !c.config.enabled {
-		return fn(ctx)
-	}
-
-	var e error
-	var ok bool
-	var resp *resty.Response
-
-	function := func(ctx context.Context) error {
-
-		var err error
-		resp, err = fn(ctx)
-
-		for _, filter := range fi {
-			if ok, e = filter(err); ok {
-				return err
-			}
-		}
-
-		if len(fi) > 0 {
-			return nil
-		}
-
-		return err
-	}
-
-	hystrixErr := hystrix.DoC(ctx, c.config.Name, function, fallback)
-
-	if hystrixErr != nil {
-		return nil, hystrixErr
-	}
-
-	if e != nil {
-		return nil, e
-	}
-
-	return resp, nil
+func SetErrorFilter(ctx context.Context, filter func(error) (bool, error)) {
+	context.WithValue(ctx, circuitErrFilterKey, filter)
 }
 
-func defaultCircuitErrorFunc(_ context.Context, err error) error {
-	return err
+func defaultCircuitErrorFunc(commandName string) func(_ context.Context, err error) error {
+	return func(_ context.Context, err error) error {
+		return fmt.Errorf("command %s, error: %w", commandName, err)
+	}
 }
 
 func setDefaultCircuitConfigs(cfg *config.Config) {
 	cfg.SetDefault("circuit.enabled", false)
+	cfg.SetDefault("circuit.preset", "default")
 	cfg.SetDefault("circuit.timeout", 5000)
 	cfg.SetDefault("circuit.maxConcurrentRequests", 100)
 	cfg.SetDefault("circuit.requestVolumeThreshold", 20)
@@ -157,7 +106,7 @@ func initCircuitPresets(cfg *config.Config) {
 
 func getCircuitConfigs(cfg *config.Config) *circuitConfig {
 	if !cfg.GetBool("circuit.enabled") {
-		return &circuitConfig{}
+		return nil
 	}
 
 	preset := cfg.GetString("circuit.preset")
@@ -173,5 +122,15 @@ func getCircuitConfigs(cfg *config.Config) *circuitConfig {
 			return cc
 		}
 		panic("unknown circuit breaker preset: " + preset)
+	}
+}
+
+func (c *circuitConfig) toHystrixConfig() hystrix.CommandConfig {
+	return hystrix.CommandConfig{
+		Timeout:                c.Timeout,
+		MaxConcurrentRequests:  c.MaxConcurrentRequests,
+		ErrorPercentThreshold:  c.ErrorPercentThreshold,
+		RequestVolumeThreshold: c.RequestVolumeThreshold,
+		SleepWindow:            c.SleepWindow,
 	}
 }

@@ -36,3 +36,10 @@ func (b *Bucket[K, T]) Remove(key K) {
 	defer b.rw.Unlock()
 	delete(b.m, key)
 }
+
+func (b *Bucket[K, T]) Has(key K) bool {
+	b.rw.RLock()
+	defer b.rw.RUnlock()
+	_, ok := b.m[key]
+	return ok
+}
