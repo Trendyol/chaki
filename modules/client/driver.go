@@ -5,16 +5,17 @@ import (
 
 	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/logger"
+	"github.com/Trendyol/chaki/modules/client/common"
 	"github.com/go-resty/resty/v2"
 	"go.uber.org/zap"
 )
 
 type driverBuilder struct {
-	cfg      *config.Config
-	eh       ErrDecoder
-	d        *resty.Client
-	tr       http.RoundTripper
-	updaters []DriverWrapper
+	cfg        *config.Config
+	eh         ErrDecoder
+	d          *resty.Client
+	updaters   []DriverWrapper
+	rtWrappers []common.RoundTripperWrapper
 }
 
 func newDriverBuilder(cfg *config.Config) *driverBuilder {
@@ -26,11 +27,9 @@ func newDriverBuilder(cfg *config.Config) *driverBuilder {
 
 		// Debug mode provides a logging, but it's not in the same format with our logger.
 		SetDebug(cfg.GetBool("debug"))
-	t := d.GetClient().Transport
 	return &driverBuilder{
 		cfg: cfg,
 		d:   d,
-		tr:  t,
 	}
 }
 
@@ -44,23 +43,31 @@ func (b *driverBuilder) AddUpdaters(wrappers ...DriverWrapper) *driverBuilder {
 	return b
 }
 
-func (b *driverBuilder) setRetry(retryConfig *retryConfig) *driverBuilder {
+func (b *driverBuilder) AddRoundTripperWrappers(wrappers ...common.RoundTripperWrapper) *driverBuilder {
+	b.rtWrappers = append(b.rtWrappers, wrappers...)
+	return b
+}
+
+func (b *driverBuilder) SetRetry(retryConfig *retryConfig) *driverBuilder {
 	if retryConfig == nil {
 		return b
 	}
 
-	tr := newRetryRoundTripper(b.tr, retryConfig)
-	b.d.SetTransport(tr)
+	b.rtWrappers = append(b.rtWrappers, func(rt http.RoundTripper) http.RoundTripper {
+		return newRetryRoundTripper(rt, retryConfig)
+	})
+
 	return b
 }
 
-func (b *driverBuilder) setCircuit(circuitConfig *circuitConfig) *driverBuilder {
+func (b *driverBuilder) SetCircuit(circuitConfig *circuitConfig) *driverBuilder {
 	if circuitConfig == nil {
 		return b
 	}
 
-	tr := newCircuitRoundTripper(b.tr, circuitConfig)
-	b.d.SetTransport(tr)
+	b.rtWrappers = append(b.rtWrappers, func(rt http.RoundTripper) http.RoundTripper {
+		return newCircuitRoundTripper(rt, circuitConfig)
+	})
 
 	return b
 }
@@ -70,6 +77,8 @@ func (b *driverBuilder) build() *resty.Client {
 		b.useLogging()
 	}
 
+	b.d.SetTransport(b.buildRoundTripper())
+
 	for _, upd := range b.updaters {
 		b.d = upd(b.d)
 	}
@@ -78,6 +87,15 @@ func (b *driverBuilder) build() *resty.Client {
 		return b.eh(r.Request.Context(), r)
 	})
 	return b.d
+}
+
+func (b *driverBuilder) buildRoundTripper() http.RoundTripper {
+	rt := b.d.GetClient().Transport
+	for _, wr := range b.rtWrappers {
+		rt = wr(rt)
+	}
+
+	return rt
 }
 
 func (b *driverBuilder) useLogging() {

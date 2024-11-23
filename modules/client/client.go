@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Trendyol/chaki/config"
+	"github.com/Trendyol/chaki/modules/client/common"
 	"github.com/go-resty/resty/v2"
 )
 
@@ -15,9 +16,10 @@ type Base struct {
 type Factory struct {
 	cfg          *config.Config
 	baseWrappers []DriverWrapper
+	rtWrappers   []common.RoundTripperWrapper
 }
 
-func NewFactory(cfg *config.Config, wrappers []DriverWrapper) *Factory {
+func NewFactory(cfg *config.Config, wrappers []DriverWrapper, rtWrappers []common.RoundTripperWrapper) *Factory {
 	initCircuitPresets(cfg)
 	initRetryPresets(cfg)
 	return &Factory{
@@ -44,8 +46,8 @@ func (f *Factory) Get(name string, opts ...Option) *Base {
 			AddErrDecoder(cOpts.errDecoder).
 			AddUpdaters(f.baseWrappers...).
 			AddUpdaters(cOpts.driverWrappers...).
-			setCircuit(getCircuitConfigs(clientCfg)).
-			setRetry(getRetryConfigs(clientCfg)).
+			SetCircuit(getCircuitConfigs(clientCfg)).
+			SetRetry(getRetryConfigs(clientCfg)).
 			build(),
 	}
 }
