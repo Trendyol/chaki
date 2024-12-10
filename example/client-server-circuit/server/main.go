@@ -3,12 +3,11 @@ package main
 import (
 	"context"
 	"errors"
-	"time"
-
 	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/logger"
 	"github.com/Trendyol/chaki/modules/server"
 	"github.com/Trendyol/chaki/modules/server/controller"
+	"github.com/Trendyol/chaki/modules/server/response"
 	"github.com/Trendyol/chaki/modules/server/route"
 )
 
@@ -57,15 +56,14 @@ func (ct *serverController) greetHandler(_ context.Context, _ struct{}) (string,
 	return "", errors.New("server is initializing. please try again later")
 }
 
-func (ct *serverController) greetWithBody(_ context.Context, req GreetWithBodyRequest) (string, error) {
-	return req.Text, nil
+func (ct *serverController) greetWithBody(_ context.Context, req GreetWithBodyRequest) (response.Response[string], error) {
+	return response.Success(req.Text), nil
 }
 
-func (ct *serverController) greetWithQuery(_ context.Context, req GreetWithQueryRequest) (string, error) {
-	time.Sleep(3 * time.Second)
-	return "", errors.New("server is initializing. please try again later")
+func (ct *serverController) greetWithQuery(_ context.Context, req GreetWithQueryRequest) (response.Response[any], error) {
+	return response.Response[any]{}, errors.New("query endpoint is initializing. please try again later")
 }
 
-func (ct *serverController) greetWithParam(_ context.Context, req GreetWithParamRequest) (string, error) {
-	return req.Text, nil
+func (ct *serverController) greetWithParam(_ context.Context, req GreetWithParamRequest) (response.Response[any], error) {
+	return response.Response[any]{}, errors.New("param endpoint is initializing. please try again later")
 }

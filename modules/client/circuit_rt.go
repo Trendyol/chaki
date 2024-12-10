@@ -1,8 +1,11 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strings"
 
@@ -10,30 +13,68 @@ import (
 	"github.com/afex/hystrix-go/hystrix"
 )
 
-type CircuitRountTripper struct {
+type CircuitRoundTripper struct {
 	next     http.RoundTripper
 	config   *circuitConfig
 	commands *store.Bucket[string, struct{}]
 }
 
 func newCircuitRoundTripper(next http.RoundTripper, config *circuitConfig) http.RoundTripper {
-	return &CircuitRountTripper{
+	return &CircuitRoundTripper{
 		next:     next,
 		config:   config,
 		commands: store.NewBucket(func(k string) struct{} { return struct{}{} }),
 	}
 }
 
-func (c *CircuitRountTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+func (c *CircuitRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	if c.config == nil || !c.config.Enabled {
 		return c.next.RoundTrip(req)
 	}
 
-	circuitName := getCircuitName(req)
+	var circuitName string
+	if val := req.Context().Value(circuitCommandKey); val != nil {
+		if v, ok := val.(string); ok {
+			circuitName = v
+		} else {
+			return nil, errors.New("circuit command is not valid")
+		}
+	}
+
 	var fb func(context.Context, error) error
-	if val := req.Context().Value("circuitFallback"); val != nil {
-		if v, ok := val.(func(context.Context, error) error); ok {
-			fb = v
+	var fallbackResponse *http.Response
+	if val := req.Context().Value(circuitFallbackKey); val != nil {
+		if v, ok := val.(func(context.Context, error) (interface{}, error)); ok {
+			fb = func(ctx context.Context, err error) error {
+				resp, err := v(ctx, err)
+				if err != nil {
+					return err
+				}
+
+				body, contentLength, contentType, err := interfaceToReadCloserWithLength(resp)
+				if err != nil {
+					return err
+				}
+
+				if resp != nil {
+					fallbackResponse = &http.Response{
+						StatusCode:    200,
+						Status:        "200 OK",
+						Body:          body,
+						Header:        make(http.Header),
+						ContentLength: contentLength,
+					}
+
+					if contentType != "" {
+						fallbackResponse.Header.Set("Content-Type", contentType)
+					} else {
+						fallbackResponse.Header.Set("Content-Type", "application/json")
+					}
+
+					return nil
+				}
+				return errors.New("could not generate any response from the fallback function" + circuitName)
+			}
 		} else {
 			return nil, errors.New("fallback function is not valid for the circuit: " + circuitName)
 		}
@@ -42,7 +83,7 @@ func (c *CircuitRountTripper) RoundTrip(req *http.Request) (*http.Response, erro
 	}
 
 	var filter func(error) (bool, error)
-	if val := req.Context().Value("circuitFilter"); val != nil {
+	if val := req.Context().Value(circuitErrFilterKey); val != nil {
 		if v, ok := val.(func(error) (bool, error)); ok {
 			filter = v
 		} else {
@@ -64,7 +105,6 @@ func (c *CircuitRountTripper) RoundTrip(req *http.Request) (*http.Response, erro
 			if ok, e = filter(err); ok {
 				return err
 			}
-
 			return nil
 		}
 
@@ -86,16 +126,46 @@ func (c *CircuitRountTripper) RoundTrip(req *http.Request) (*http.Response, erro
 		return nil, e
 	}
 
+	if fallbackResponse != nil {
+		return fallbackResponse, nil
+	}
+
 	return resp, nil
 }
 
-func getCircuitName(req *http.Request) string {
-	sb := strings.Builder{}
+func interfaceToReadCloserWithLength(data interface{}) (io.ReadCloser, int64, string, error) {
+	switch v := data.(type) {
+	case io.ReadCloser, io.Reader:
 
-	sb.WriteString(req.Method)
-	sb.WriteString("-")
-	sb.WriteString(req.URL.Host)
-	sb.WriteString(req.URL.Path)
+		var reader io.Reader
+		if rc, ok := v.(io.ReadCloser); ok {
+			reader = rc
+		} else {
+			reader = v.(io.Reader)
+		}
 
-	return sb.String()
+		body, err := io.ReadAll(reader)
+		if err != nil {
+			return nil, 0, "", err
+		}
+
+		contentType := http.DetectContentType(body)
+		return io.NopCloser(bytes.NewReader(body)), int64(len(body)), contentType, nil
+
+	case []byte:
+		contentType := http.DetectContentType(v)
+		return io.NopCloser(bytes.NewReader(v)), int64(len(v)), contentType, nil
+
+	case string:
+		b := []byte(v)
+		contentType := http.DetectContentType(b)
+		return io.NopCloser(strings.NewReader(v)), int64(len(v)), contentType, nil
+
+	default:
+		b, err := json.Marshal(v)
+		if err != nil {
+			return nil, 0, "", err
+		}
+		return io.NopCloser(bytes.NewReader(b)), int64(len(b)), "application/json", nil
+	}
 }

@@ -13,7 +13,7 @@ client:
     circuit:
       preset: custom
       enabled: true
-      timeout: 10
+      timeout: 1
       maxConcurrentRequests: 1
       errorPercentThreshold: 1
       requestVolumeThreshold: 1

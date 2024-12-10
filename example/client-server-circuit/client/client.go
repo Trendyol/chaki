@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/Trendyol/chaki/modules/client"
 	"github.com/Trendyol/chaki/modules/server/response"
@@ -50,16 +51,15 @@ func (cl *exampleClient) sendGreetWithQuery(ctx context.Context, req GreetWithQu
 func (cl *exampleClient) sendGreetWithParam(ctx context.Context, req GreetWithParamRequest) (string, error) {
 	resp := &response.Response[string]{}
 
-	url := fmt.Sprintf("/hello/param/%s", req.Text)
-	params := map[string]string{
-		"repeatTimes": fmt.Sprintf("%d", req.RepeatTimes),
-	}
+	ctx = client.SetFallbackFunc(ctx, func(ctx context.Context, err error) (interface{}, error) {
+		return response.Success("custom fallback response"), nil
+	})
 
-	if _, err := cl.Request(ctx).
+	if _, err := cl.RequestWithCommand(ctx, "param").
 		SetResult(resp).
-		SetHeaders(params).
-		SetQueryParams(params).
-		Get(url); err != nil {
+		SetQueryParam("repeatTimes", strconv.Itoa(req.RepeatTimes)).
+		SetPathParam("text", req.Text).
+		Get("/hello/param/{text}"); err != nil {
 		return "", err
 	}
 

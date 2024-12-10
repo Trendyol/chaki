@@ -46,12 +46,16 @@ func (f *Factory) Get(name string, opts ...Option) *Base {
 			AddErrDecoder(cOpts.errDecoder).
 			AddUpdaters(f.baseWrappers...).
 			AddUpdaters(cOpts.driverWrappers...).
-			SetCircuit(getCircuitConfigs(clientCfg)).
 			SetRetry(getRetryConfigs(clientCfg)).
+			SetCircuit(getCircuitConfigs(clientCfg)).
 			build(),
 	}
 }
 
 func (b *Base) Request(ctx context.Context) *resty.Request {
 	return b.driver.R().SetContext(ctx)
+}
+
+func (b *Base) RequestWithCommand(ctx context.Context, command string) *resty.Request {
+	return b.driver.R().SetContext(context.WithValue(ctx, circuitCommandKey, command))
 }

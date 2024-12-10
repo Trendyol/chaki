@@ -56,16 +56,17 @@ var (
 )
 
 const (
+	circuitCommandKey   contextKey = "command"
 	circuitFallbackKey  contextKey = "fallback"
 	circuitErrFilterKey contextKey = "errorFilter"
 )
 
-func SetFallbackFunc(ctx context.Context, fb func(context.Context, error) error) {
-	context.WithValue(ctx, circuitFallbackKey, fb)
+func SetFallbackFunc(ctx context.Context, fb func(context.Context, error) (interface{}, error)) context.Context {
+	return context.WithValue(ctx, circuitFallbackKey, fb)
 }
 
-func SetErrorFilter(ctx context.Context, filter func(error) (bool, error)) {
-	context.WithValue(ctx, circuitErrFilterKey, filter)
+func SetErrorFilter(ctx context.Context, filter func(error) (bool, error)) context.Context {
+	return context.WithValue(ctx, circuitErrFilterKey, filter)
 }
 
 func defaultCircuitErrorFunc(commandName string) func(_ context.Context, err error) error {
