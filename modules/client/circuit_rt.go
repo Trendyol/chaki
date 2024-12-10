@@ -5,12 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io"
-	"net/http"
-	"strings"
-
 	"github.com/Trendyol/chaki/util/store"
 	"github.com/afex/hystrix-go/hystrix"
+	"io"
+	"net/http"
 )
 
 type CircuitRoundTripper struct {
@@ -134,38 +132,9 @@ func (c *CircuitRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 }
 
 func interfaceToReadCloserWithLength(data interface{}) (io.ReadCloser, int64, string, error) {
-	switch v := data.(type) {
-	case io.ReadCloser, io.Reader:
-
-		var reader io.Reader
-		if rc, ok := v.(io.ReadCloser); ok {
-			reader = rc
-		} else {
-			reader = v.(io.Reader)
-		}
-
-		body, err := io.ReadAll(reader)
-		if err != nil {
-			return nil, 0, "", err
-		}
-
-		contentType := http.DetectContentType(body)
-		return io.NopCloser(bytes.NewReader(body)), int64(len(body)), contentType, nil
-
-	case []byte:
-		contentType := http.DetectContentType(v)
-		return io.NopCloser(bytes.NewReader(v)), int64(len(v)), contentType, nil
-
-	case string:
-		b := []byte(v)
-		contentType := http.DetectContentType(b)
-		return io.NopCloser(strings.NewReader(v)), int64(len(v)), contentType, nil
-
-	default:
-		b, err := json.Marshal(v)
-		if err != nil {
-			return nil, 0, "", err
-		}
-		return io.NopCloser(bytes.NewReader(b)), int64(len(b)), "application/json", nil
+	b, err := json.Marshal(data)
+	if err != nil {
+		return nil, 0, "", err
 	}
+	return io.NopCloser(bytes.NewReader(b)), int64(len(b)), "application/json", nil
 }

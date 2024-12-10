@@ -1,24 +1,24 @@
 package store
 
-import "sync"
+import (
+	csmap "github.com/mhmtszr/concurrent-swiss-map"
+)
 
 type Bucket[K comparable, T any] struct {
-	rw        sync.RWMutex
-	m         map[K]T
+	m         *csmap.CsMap[K, T]
 	onDefault func(K) T
 }
 
 func NewBucket[K comparable, T any](onDefault func(K) T) *Bucket[K, T] {
+	m := csmap.Create[K, T]()
 	return &Bucket[K, T]{
-		m:         make(map[K]T),
+		m:         m,
 		onDefault: onDefault,
 	}
 }
 
 func (b *Bucket[K, T]) Get(key K) T {
-	b.rw.RLock()
-	defer b.rw.RUnlock()
-	v, ok := b.m[key]
+	v, ok := b.m.Load(key)
 	if !ok {
 		return b.onDefault(key)
 	}
@@ -26,20 +26,13 @@ func (b *Bucket[K, T]) Get(key K) T {
 }
 
 func (b *Bucket[K, T]) Set(key K, t T) {
-	b.rw.Lock()
-	defer b.rw.Unlock()
-	b.m[key] = t
+	b.m.Store(key, t)
 }
 
 func (b *Bucket[K, T]) Remove(key K) {
-	b.rw.Lock()
-	defer b.rw.Unlock()
-	delete(b.m, key)
+	b.m.Delete(key)
 }
 
 func (b *Bucket[K, T]) Has(key K) bool {
-	b.rw.RLock()
-	defer b.rw.RUnlock()
-	_, ok := b.m[key]
-	return ok
+	return b.m.Has(key)
 }
