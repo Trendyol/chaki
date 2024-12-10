@@ -41,15 +41,15 @@ var (
 		MaxDelay:  5 * time.Second,
 		DelayType: ExponentialDelay,
 	}
-	aggresiveRetryConfig = &retryConfig{
-		Name:      "aggresive",
+	aggressiveRetryConfig = &retryConfig{
+		Name:      "aggressive",
 		Count:     7,
 		Interval:  50 * time.Millisecond,
 		MaxDelay:  2 * time.Second,
 		DelayType: ConstantDelay,
 	}
-	aggresiveExponentialRetryConfig = &retryConfig{
-		Name:      "aggresiveExponential",
+	aggressiveExponentialRetryConfig = &retryConfig{
+		Name:      "aggressiveExponential",
 		Count:     7,
 		Interval:  50 * time.Millisecond,
 		MaxDelay:  2 * time.Second,
@@ -106,8 +106,8 @@ func initRetryPresets(cfg *config.Config) {
 	predefinedRetryPresets := []*retryConfig{
 		defaultRetryConfig,
 		exponentialRetryConfig,
-		aggresiveRetryConfig,
-		aggresiveExponentialRetryConfig,
+		aggressiveRetryConfig,
+		aggressiveExponentialRetryConfig,
 		relaxedRetryConfig,
 		relaxedExponentialConfig,
 	}

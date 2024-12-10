@@ -18,7 +18,6 @@ type (
 		ErrorPercentThreshold  int
 		RequestVolumeThreshold int
 		SleepWindow            int
-		Commands               []string
 	}
 
 	contextKey string

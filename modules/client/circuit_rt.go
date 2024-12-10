@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/Trendyol/chaki/util/store"
-	"github.com/afex/hystrix-go/hystrix"
 	"io"
 	"net/http"
+
+	"github.com/Trendyol/chaki/util/store"
+	"github.com/afex/hystrix-go/hystrix"
 )
 
 type CircuitRoundTripper struct {
@@ -95,7 +96,6 @@ func (c *CircuitRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 		resp *http.Response
 	)
 	function := func(ctx context.Context) error {
-
 		var err error
 		resp, err = c.next.RoundTrip(req)
 
