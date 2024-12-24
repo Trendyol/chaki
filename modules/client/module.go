@@ -4,6 +4,8 @@ import (
 	"github.com/Trendyol/chaki/as"
 	"github.com/Trendyol/chaki/module"
 	"github.com/Trendyol/chaki/modules/client/common"
+	"github.com/go-resty/resty/v2"
+	"net/http"
 )
 
 var (
@@ -18,6 +20,7 @@ func Module() *module.Module {
 		NewFactory,
 		asDriverWrapper.Grouper(),
 		asRoundTripperWrapper.Grouper(),
+		buildRoundTripperWrapper,
 		withCtxBinder,
 	)
 
@@ -33,4 +36,15 @@ func Module() *module.Module {
 	)
 
 	return m
+}
+
+func buildRoundTripperWrapper(wrappers []common.RoundTripperWrapper) DriverWrapper {
+	t := http.DefaultTransport
+	for _, wrapper := range wrappers {
+		t = wrapper(t)
+	}
+
+	return func(c *resty.Client) *resty.Client {
+		return c.SetTransport(t)
+	}
 }

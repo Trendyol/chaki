@@ -77,11 +77,11 @@ func (b *driverBuilder) build() *resty.Client {
 		b.useLogging()
 	}
 
-	b.d.SetTransport(b.buildRoundTripper())
-
 	for _, upd := range b.updaters {
 		b.d = upd(b.d)
 	}
+
+	b.d.SetTransport(b.buildRoundTripper())
 
 	b.d.OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
 		return b.eh(r.Request.Context(), r)
