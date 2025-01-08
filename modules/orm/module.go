@@ -6,6 +6,8 @@ import (
 	"github.com/Trendyol/chaki/module"
 	"github.com/Trendyol/chaki/modules/orm/driver"
 	"github.com/Trendyol/chaki/modules/orm/tx"
+	"github.com/Trendyol/chaki/util/health"
+	"gorm.io/gorm"
 )
 
 const ModuleName = "chaki-orm-module"
@@ -23,6 +25,7 @@ func Module(d driver.Driver, opts ...Option) *module.Module {
 		newGorm,
 		newGormProvider,
 		tx.NewTransactioner,
+		newLivenessProbe,
 	)
 
 	m.AddProvideHook(
@@ -33,4 +36,11 @@ func Module(d driver.Driver, opts ...Option) *module.Module {
 	)
 
 	return m
+}
+
+func newLivenessProbe(db *gorm.DB) health.LivenessChecker {
+	return health.HookFunc(func() error {
+		err := db.Raw("SELECT 1").Scan(1).Error
+		return err
+	})
 }

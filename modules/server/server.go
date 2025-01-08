@@ -10,6 +10,7 @@ import (
 	"github.com/Trendyol/chaki/modules/server/middlewares"
 	"github.com/Trendyol/chaki/modules/server/route"
 	"github.com/Trendyol/chaki/modules/swagger"
+	"github.com/Trendyol/chaki/util/health"
 	"github.com/Trendyol/chaki/util/slc"
 	"github.com/gofiber/fiber/v2"
 )
@@ -82,6 +83,8 @@ func defaultFiber(
 	wrappers []common.FiberAppWrapper,
 	groups []common.MiddlewareGroup,
 	configWrappers []common.FiberConfigWrapper,
+	livenessCheckers []health.LivenessChecker,
+	readinessCheckers []health.ReadinessChecker,
 	opts *options,
 ) *fiber.App {
 	setDefaultFiberConfigs(cfg)
@@ -107,10 +110,13 @@ func defaultFiber(
 
 	app.Use(
 		middlewares.ContextBinder(),
-		middlewares.HealthCheck(
-			serverCfg.GetString("healthcheck.endpoints.liveness"),
-			serverCfg.GetString("healthcheck.endpoints.readiness"),
-		),
+		middlewares.HealthCheck(middlewares.HealthOptions{
+			LivenessPath:     serverCfg.GetString("healthcheck.endpoints.liveness"),
+			LivenessCheckers: livenessCheckers,
+
+			ReadinessPath:     serverCfg.GetString("healthcheck.endpoints.readiness"),
+			ReadinessCheckers: readinessCheckers,
+		}),
 		middlewares.Recover(),
 	)
 
