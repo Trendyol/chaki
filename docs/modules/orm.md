@@ -52,6 +52,25 @@ func (s *service) Save(parentctx context.Context) error {
 ```
 In this example, the Save method encapsulates multiple operations (SaveOne and SaveTwo) within a single transaction. If any operation fails, the entire transaction is rolled back, maintaining data integrity.
 
+### Mock Support for Unit Testing
+
+For unit testing, you can use the mock transactioner provided by the framework. This mock is available in the following package: 
+
+
+> `github.com/Trendyol/chaki/modules/orm/tx/mock`
+
+
+
+```go
+func TestServiceBar(t *testing.T) {
+    tx := mock.New()
+    svc := NewService(tx)
+    
+    // ...
+}
+
+```
+
 
 ## Drivers
 Drivers in this module provide an abstraction layer for different gorm or sql/db dialects, allowing the Orm module to work with various SQL databases. Each driver can have its own unique configuration and options, making it flexible to adapt to different database setups.
