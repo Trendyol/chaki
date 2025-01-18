@@ -2,7 +2,7 @@ package client
 
 import (
 	"math"
-	"math/rand/v2"
+	"math/rand"
 	"net/http"
 	"time"
 )
@@ -30,8 +30,8 @@ func (r *RetryRoundTripper) RoundTrip(req *http.Request) (*http.Response, error)
 		if r.cfg.DelayType == ExponentialDelay {
 			exponentialDelay := delay * time.Duration(math.Pow(2, float64(i)))
 
-			// TODO: check for the rand.Float64() function
-			jitter := time.Duration(rand.Float64() * float64(r.cfg.Interval))
+			randFloat := rand.New(rand.NewSource(time.Now().UnixNano())).Float64()
+			jitter := time.Duration(randFloat * float64(r.cfg.Interval))
 			delay = exponentialDelay + jitter
 			if delay > r.cfg.MaxDelay {
 				delay = r.cfg.MaxDelay
