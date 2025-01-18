@@ -27,105 +27,74 @@ func newCircuitRoundTripper(next http.RoundTripper, config *circuitConfig) http.
 }
 
 func (c *CircuitRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	if c.config == nil || !c.config.Enabled {
+	if !c.isCircuitEnabled() {
 		return c.next.RoundTrip(req)
 	}
 
-	var circuitName string
-	if val := req.Context().Value(circuitCommandKey); val != nil {
-		if v, ok := val.(string); ok {
-			circuitName = v
-		} else {
-			return nil, errors.New("circuit command is not valid")
-		}
+	command, err := c.getCircuitCommand(req.Context())
+	if err != nil {
+		return nil, err
 	}
 
-	var fb func(context.Context, error) error
-	var fallbackResponse *http.Response
-	if val := req.Context().Value(circuitFallbackKey); val != nil {
-		if v, ok := val.(func(context.Context, error) (interface{}, error)); ok {
-			fb = func(ctx context.Context, err error) error {
-				resp, err := v(ctx, err)
-				if err != nil {
-					return err
-				}
+	c.ensureCommandConfigured(command)
 
-				body, contentLength, contentType, err := interfaceToReadCloserWithLength(resp)
-				if err != nil {
-					return err
-				}
+	return c.executeWithCircuitBreaker(req, command)
+}
 
-				if resp != nil {
-					fallbackResponse = &http.Response{
-						StatusCode:    200,
-						Status:        "200 OK",
-						Body:          body,
-						Header:        make(http.Header),
-						ContentLength: contentLength,
-					}
+func (c *CircuitRoundTripper) isCircuitEnabled() bool {
+	return c.config != nil && c.config.Enabled
+}
 
-					if contentType != "" {
-						fallbackResponse.Header.Set("Content-Type", contentType)
-					} else {
-						fallbackResponse.Header.Set("Content-Type", "application/json")
-					}
-
-					return nil
-				}
-				return errors.New("could not generate any response from the fallback function" + circuitName)
-			}
-		} else {
-			return nil, errors.New("fallback function is not valid for the circuit: " + circuitName)
-		}
-	} else {
-		fb = defaultCircuitErrorFunc(circuitName)
+func (c *CircuitRoundTripper) getCircuitCommand(ctx context.Context) (string, error) {
+	val := ctx.Value(circuitCommandKey)
+	if val == nil {
+		return "", errors.New("circuit command is not configured")
 	}
 
-	var filter func(error) (bool, error)
-	if val := req.Context().Value(circuitErrFilterKey); val != nil {
-		if v, ok := val.(func(error) (bool, error)); ok {
-			filter = v
-		} else {
-			return nil, errors.New("filter function is not valid for the circuit: " + circuitName)
-		}
+	command, ok := val.(string)
+	if !ok {
+		return "", errors.New("circuit command must be a string")
 	}
 
+	return command, nil
+}
+
+func (c *CircuitRoundTripper) ensureCommandConfigured(command string) {
+	if !c.commands.Has(command) {
+		hystrix.ConfigureCommand(command, c.config.toHystrixConfig())
+		c.commands.Set(command, struct{}{})
+	}
+}
+
+func (c *CircuitRoundTripper) executeWithCircuitBreaker(req *http.Request, command string) (*http.Response, error) {
 	var (
-		e    error
-		ok   bool
-		resp *http.Response
+		resp            *http.Response
+		fallbackHandler *fallbackHandler
+		err             error
 	)
-	function := func(ctx context.Context) error {
-		var err error
+
+	fallbackHandler = newFallbackHandler(req.Context())
+	errFilterFunc := getErrorFilterFunc(req.Context())
+
+	execFn := func(ctx context.Context) error {
 		resp, err = c.next.RoundTrip(req)
 
-		if filter != nil {
-			if ok, e = filter(err); ok {
-				return err
-			}
-			return nil
+		if modifyErr, filterErr := errFilterFunc(err); modifyErr {
+			return filterErr
 		}
-
 		return err
 	}
 
-	if !c.commands.Has(circuitName) {
-		hystrix.ConfigureCommand(circuitName, c.config.toHystrixConfig())
-		c.commands.Set(circuitName, struct{}{})
-	}
-
-	hystrixErr := hystrix.DoC(req.Context(), circuitName, function, fb)
-
-	if hystrixErr != nil {
+	if hystrixErr := hystrix.DoC(req.Context(), command, execFn, fallbackHandler.handle); hystrixErr != nil {
 		return nil, hystrixErr
 	}
 
-	if e != nil {
-		return nil, e
+	if err != nil {
+		return nil, err
 	}
 
-	if fallbackResponse != nil {
-		return fallbackResponse, nil
+	if fallbackResp := fallbackHandler.resp; fallbackResp != nil {
+		return fallbackResp, nil
 	}
 
 	return resp, nil

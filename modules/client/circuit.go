@@ -1,9 +1,6 @@
 package client
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/util/store"
 	"github.com/afex/hystrix-go/hystrix"
@@ -59,20 +56,6 @@ const (
 	circuitFallbackKey  contextKey = "fallback"
 	circuitErrFilterKey contextKey = "errorFilter"
 )
-
-func SetFallbackFunc(ctx context.Context, fb func(context.Context, error) (interface{}, error)) context.Context {
-	return context.WithValue(ctx, circuitFallbackKey, fb)
-}
-
-func SetErrorFilter(ctx context.Context, filter func(error) (bool, error)) context.Context {
-	return context.WithValue(ctx, circuitErrFilterKey, filter)
-}
-
-func defaultCircuitErrorFunc(commandName string) func(_ context.Context, err error) error {
-	return func(_ context.Context, err error) error {
-		return fmt.Errorf("command %s, error: %w", commandName, err)
-	}
-}
 
 func setDefaultCircuitConfigs(cfg *config.Config) {
 	cfg.SetDefault("circuit.enabled", false)
