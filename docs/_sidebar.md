@@ -8,3 +8,4 @@
   - [Swagger](modules/swagger.md)
   - [New Relic](modules/newrelic.md)
   - [Client](modules/client.md)
+  - [Kafka](modules/kafka.md)
