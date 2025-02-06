@@ -35,11 +35,12 @@ func main() {
 }
 ```
 
-
 ## Modules
 
-Chaki is fundamentally based on the `uber-go/fx` dependency injection system and includes additional features such as a module system. This framework, built on a simple foundation, derives much of its power from its modules.
+Chaki is built on the `uber-go/fx` dependency injection system and extends its functionality with a robust module system. This simple yet powerful approach allows developers to enhance their applications with ease by leveraging pre-built modules.
 
-- Modules are easily added to the system with `app.Use`.
-- Once added, you can directly use instances produced by the module, such as `*gorm.Gorm` or `sarama.SyncProducer`, in any constructor you want.
-- Modules can be easily configured using configuration files.
+### Key Features of Modules
+
+- **Simple Integration**: Add modules effortlessly to your system using the `app.Use` method.
+- **Direct Access**: Once a module is added, you can directly utilize the instances it provides—such as `*gorm.DB` or `sarama.SyncProducer`—in any constructor within your application.
+- **Flexible Configuration**: Customize modules easily through configuration files, ensuring seamless adaptation to your application's needs.

@@ -9,7 +9,7 @@ First, import the necessary New Relic submodules:
 
 ```go
 import (
-    nrpsql "github.com/Trendyol/chaki/modules/newrelic/postgresql"
+    nrorm "github.com/Trendyol/chaki/modules/newrelic/orm"
     nrserver "github.com/Trendyol/chaki/modules/newrelic/server"
 )
 
@@ -22,7 +22,7 @@ app.Use(
 
 newrelic.Module(
     nrserver.WithServer(),
-    nrpsql.WithPostgresql(),
+    nrorm.WithPostgresql(),
 )
 
 // ...
@@ -33,11 +33,26 @@ newrelic.Module(
 The New Relic configuration requires the following parameters:
 ```yaml
 newrelic:
-  agentenabled: true
+  enabled: true
+  logenabled: true
   appname: "server-with-newrelic"
-  licensekey: "top-secret-license-key"
+  license: "top-secret-license-key"
 ```
-
-- agentenabled: Enable or disable the New Relic agent.
+- enabled: Enable or disable the New Relic agent.
+- logenabled: enables or disables all application logging features and data collection
 - appname: The name of your application as it will appear in New Relic.
 - licensekey: Your New Relic license key for authentication.
+
+
+You can pass more specific New Relic options to the module through its constructor using configuration options. 
+
+
+```go
+app.Use(
+  // other modules
+  newrelic.Module(
+		WithNewrelicConfigOptions(newrelic.ConfigAIMonitoringEnabled(true)),
+  )
+)
+
+```
