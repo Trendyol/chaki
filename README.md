@@ -1,4 +1,6 @@
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Trendyol/chaki/badge)](https://scorecard.dev/viewer/?uri=github.com/Trendyol/chaki)
+
 <p align="center">
   <img src="./logo.png" width=256 />
 </p>
