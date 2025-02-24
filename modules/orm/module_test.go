@@ -29,5 +29,4 @@ func Test_newLivenessReadinessProbe(t *testing.T) {
 	// Then
 	assert.NoError(t, errReadiness)
 	assert.NoError(t, errLiveness)
-
 }

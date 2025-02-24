@@ -41,6 +41,7 @@ issues:
         - lll
   exclude-dirs:
     - example
+    - modules/swagger/files
       
 service:
   golangci-lint-version: 1.60.3
