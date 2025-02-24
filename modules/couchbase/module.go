@@ -1,6 +1,8 @@
 package couchbase
 
 import (
+	"context"
+
 	"github.com/Trendyol/chaki"
 	"github.com/Trendyol/chaki/as"
 	"github.com/Trendyol/chaki/config"
@@ -23,7 +25,7 @@ func Module(option ...Option) *module.Module {
 		asClusterOptionsWrapper.Grouper(),
 		asCouchbaseTracers.Grouper(),
 		newCluster,
-		newLivenessProbe,
+		newLivenessReadinessProbe,
 	)
 
 	m.AddProvideHook(
@@ -67,9 +69,12 @@ func newCluster(cfg *config.Config, opts *options) (*gocb.Cluster, error) {
 	return gocb.Connect(cbcfg.GetString("host"), clutserOptions)
 }
 
-func newLivenessProbe(cl *gocb.Cluster) health.LivenessChecker {
-	return health.HookFunc(func() error {
-		_, err := cl.Ping(&gocb.PingOptions{})
+func newLivenessReadinessProbe(cl *gocb.Cluster) health.Probe {
+	f := func(ctx context.Context) error {
+		_, err := cl.Ping(&gocb.PingOptions{
+			Context: ctx,
+		})
 		return err
-	})
+	}
+	return health.NewProbe(f, f)
 }

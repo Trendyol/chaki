@@ -83,8 +83,7 @@ func defaultFiber(
 	wrappers []common.FiberAppWrapper,
 	groups []common.MiddlewareGroup,
 	configWrappers []common.FiberConfigWrapper,
-	livenessCheckers []health.LivenessChecker,
-	readinessCheckers []health.ReadinessChecker,
+	probes []health.Probe,
 	opts *options,
 ) *fiber.App {
 	setDefaultFiberConfigs(cfg)
@@ -111,11 +110,9 @@ func defaultFiber(
 	app.Use(
 		middlewares.ContextBinder(),
 		middlewares.HealthCheck(middlewares.HealthOptions{
-			LivenessPath:     serverCfg.GetString("healthcheck.endpoints.liveness"),
-			LivenessCheckers: livenessCheckers,
-
-			ReadinessPath:     serverCfg.GetString("healthcheck.endpoints.readiness"),
-			ReadinessCheckers: readinessCheckers,
+			LivenessPath:  serverCfg.GetString("healthcheck.endpoints.liveness"),
+			ReadinessPath: serverCfg.GetString("healthcheck.endpoints.readiness"),
+			Probes:        probes,
 		}),
 		middlewares.Recover(),
 	)

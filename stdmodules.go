@@ -33,24 +33,18 @@ func loggerModule() *module.Module {
 }
 
 func healthModule() *module.Module {
-	asLivenessChecker := as.Interface[health.LivenessChecker]("healthlivenesschecker")
-	asReadinessChecker := as.Interface[health.ReadinessChecker]("healthreadinesschecker")
+	asHealthProbes := as.Interface[health.Probe]("healthprobes")
 
 	m := module.New("health")
 
 	m.Provide(
-		asLivenessChecker.Grouper(),
-		asReadinessChecker.Grouper(),
+		asHealthProbes.Grouper(),
 	)
 
 	m.AddProvideHook(
 		module.ProvideHook{
-			Match: asLivenessChecker.Match,
-			Wrap:  asLivenessChecker.Value,
-		},
-		module.ProvideHook{
-			Match: asReadinessChecker.Match,
-			Wrap:  asReadinessChecker.Value,
+			Match: asHealthProbes.Match,
+			Wrap:  asHealthProbes.Value,
 		},
 	)
 
