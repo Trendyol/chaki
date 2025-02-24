@@ -67,6 +67,7 @@ func (app *App) applyStdModules(o *options) error {
 	app.Use(
 		cfgm,
 		loggerModule(),
+		healthModule(),
 	)
 
 	return nil

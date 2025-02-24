@@ -42,7 +42,3 @@ issues:
   exclude-dirs:
     - example
       
-service:
-  golangci-lint-version: 1.60.3
-  prepare:
-    - echo "here I can run custom commands, but no preparation needed for this repo"
