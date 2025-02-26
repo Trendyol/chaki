@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-
 	"github.com/Trendyol/chaki/config"
 	"github.com/go-resty/resty/v2"
 )

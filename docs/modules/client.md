@@ -159,6 +159,8 @@ func newClient(f *client.Factory) *exampleClient {
 
 ## Circuit Breaker
 
+**-Currently WIP-**
+
 The client module includes a built-in circuit breaker functionality using Hystrix-go with predefined circuit presets and ability to add some custom settings.
 
 This feature is turned-off by default. To enable it, you can use the following configurations.

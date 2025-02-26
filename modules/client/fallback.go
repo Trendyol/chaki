@@ -1,7 +1,10 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 )
 
@@ -12,28 +15,29 @@ func SetFallbackFunc(ctx context.Context, fb fallbackFunc) context.Context {
 }
 
 type fallbackHandler struct {
-	ctx      context.Context
 	fn       func(context.Context, error) (interface{}, error)
 	resp     *http.Response
 	executed bool
 }
 
-func newFallbackHandler(ctx context.Context) *fallbackHandler {
-	h := &fallbackHandler{
-		ctx: ctx,
-	}
+func newOrDefaultFallbackHandler(ctx context.Context) *fallbackHandler {
+	h := &fallbackHandler{}
 
 	if fn, ok := ctx.Value(circuitFallbackKey).(fallbackFunc); ok {
 		h.fn = fn
 	} else {
-		h.fn = defaultCircuitFallbackFunc
+		h.fn = defaultFallbackFn
 	}
 
 	return h
 }
 
-func (f *fallbackHandler) handle(ctx context.Context, err error) error {
-	resp, err := f.fn(ctx, err)
+func defaultFallbackFn(_ context.Context, e error) (interface{}, error) {
+	return nil, e
+}
+
+func (f *fallbackHandler) handle(ctx context.Context, e error) error {
+	resp, err := f.fn(ctx, e)
 	if err != nil {
 		return err
 	}
@@ -61,6 +65,10 @@ func (f *fallbackHandler) handle(ctx context.Context, err error) error {
 	return nil
 }
 
-func defaultCircuitFallbackFunc(_ context.Context, err error) (any, error) {
-	return nil, err
+func interfaceToReadCloserWithLength(data interface{}) (io.ReadCloser, int64, string, error) {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return nil, 0, "", err
+	}
+	return io.NopCloser(bytes.NewReader(b)), int64(len(b)), "application/json", nil
 }

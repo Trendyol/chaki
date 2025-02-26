@@ -1,6 +1,9 @@
 package client
 
 import (
+	"net/http"
+	"slices"
+
 	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/util/store"
 	"github.com/afex/hystrix-go/hystrix"
@@ -15,13 +18,21 @@ type (
 		ErrorPercentThreshold  int
 		RequestVolumeThreshold int
 		SleepWindow            int
+		StatusCodeConfig       statusCodeConfig
 	}
 
-	contextKey string
+	statusCodeConfig struct {
+		TreatAllErrorCodesAsFailure bool
+		SpecificStatusCodes         []int
+		IgnoreStatusCodes           []int
+	}
+
+	circuitContextKey int
 )
 
 var (
 	defaultCircuitConfig = &circuitConfig{
+		Enabled:                true,
 		Name:                   "default",
 		Timeout:                5000,
 		MaxConcurrentRequests:  100,
@@ -31,6 +42,7 @@ var (
 	}
 
 	aggressiveCircuitConfig = &circuitConfig{
+		Enabled:                true,
 		Name:                   "aggressive",
 		Timeout:                2000,
 		MaxConcurrentRequests:  50,
@@ -40,6 +52,7 @@ var (
 	}
 
 	relaxedCircuitConfig = &circuitConfig{
+		Enabled:                true,
 		Name:                   "relaxed",
 		Timeout:                10000,
 		MaxConcurrentRequests:  200,
@@ -52,9 +65,9 @@ var (
 )
 
 const (
-	circuitCommandKey   contextKey = "command"
-	circuitFallbackKey  contextKey = "fallback"
-	circuitErrFilterKey contextKey = "errorFilter"
+	circuitCommandKey circuitContextKey = iota
+	circuitFallbackKey
+	circuitErrFilterKey
 )
 
 func setDefaultCircuitConfigs(cfg *config.Config) {
@@ -116,4 +129,20 @@ func (c *circuitConfig) toHystrixConfig() hystrix.CommandConfig {
 		RequestVolumeThreshold: c.RequestVolumeThreshold,
 		SleepWindow:            c.SleepWindow,
 	}
+}
+
+func (c *circuitConfig) shouldTreatStatusCodeAsFailure(statusCode int) bool {
+	if slices.Contains(c.StatusCodeConfig.IgnoreStatusCodes, statusCode) {
+		return false
+	}
+
+	if slices.Contains(c.StatusCodeConfig.SpecificStatusCodes, statusCode) {
+		return true
+	}
+
+	if c.StatusCodeConfig.TreatAllErrorCodesAsFailure && statusCode >= http.StatusBadRequest {
+		return true
+	}
+
+	return statusCode >= http.StatusInternalServerError
 }

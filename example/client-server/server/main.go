@@ -4,65 +4,41 @@ import (
 	"context"
 
 	"github.com/Trendyol/chaki"
-	"github.com/Trendyol/chaki/logger"
+	"github.com/Trendyol/chaki/modules/otel"
+	otelserver "github.com/Trendyol/chaki/modules/otel/server"
 	"github.com/Trendyol/chaki/modules/server"
-	"github.com/Trendyol/chaki/modules/server/controller"
-	"github.com/Trendyol/chaki/modules/server/route"
+	"github.com/Trendyol/chaki/modules/swagger"
 )
 
 func main() {
 	app := chaki.New()
 
+	app.WithOption(
+		chaki.WithConfigPath("config.yaml"),
+	)
+
 	app.Use(
 		server.Module(),
+
+		// To add otel module, simply add the following line
+		// This requires otel init function and submodules.
+		otel.Module(
+			otel.WithInitFunc(customOtelInitFunc),
+			otelserver.WithServer(),
+		),
+		swagger.Module(),
 	)
 
 	app.Provide(
-		NewController,
+		NewCustomController,
 	)
 
-	if err := app.Start(); err != nil {
-		logger.Fatal(err)
+	_ = app.Start()
+}
+
+// You should be setting your propogations, exporters, and other configurations here.
+func customOtelInitFunc() otel.CloseFunc {
+	return func(ctx context.Context) error {
+		return nil
 	}
-}
-
-type serverController struct {
-	*controller.Base
-}
-
-func NewController() controller.Controller {
-	return &serverController{
-		Base: controller.New("server-controller").SetPrefix("/hello"),
-	}
-}
-
-func (ct *serverController) hello(ctx context.Context, _ any) (string, error) {
-	logger.From(ctx).Info("hello from server")
-	return "Hi From Server", nil
-}
-
-func (ct *serverController) Routes() []route.Route {
-	return []route.Route{
-		route.Get("/", ct.hello),
-		route.Get("/greet", ct.greetHandler).Name("Greet Route"),
-		route.Get("/query", ct.greetWithQuery).Name("Greet with query"),
-		route.Get("/param/:text", ct.greetWithParam).Name("Greet with param"),
-		route.Post("/body", ct.greetWithBody).Name("Greet with body"),
-	}
-}
-
-func (ct *serverController) greetHandler(_ context.Context, _ struct{}) (string, error) {
-	return "Greetings!", nil
-}
-
-func (ct *serverController) greetWithBody(_ context.Context, req GreetWithBodyRequest) (string, error) {
-	return req.Text, nil
-}
-
-func (ct *serverController) greetWithQuery(_ context.Context, req GreetWithQueryRequest) (string, error) {
-	return req.Text, nil
-}
-
-func (ct *serverController) greetWithParam(_ context.Context, req GreetWithParamRequest) (string, error) {
-	return req.Text, nil
 }

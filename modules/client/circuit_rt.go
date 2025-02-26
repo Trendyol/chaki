@@ -3,10 +3,13 @@ package client
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/Trendyol/chaki/logger"
+	"go.uber.org/zap"
 
 	"github.com/Trendyol/chaki/util/store"
 	"github.com/afex/hystrix-go/hystrix"
@@ -33,7 +36,7 @@ func (c *CircuitRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 
 	command, err := c.getCircuitCommand(req.Context())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get circuit command on cirucit %s: %w", c.config.Name, err)
 	}
 
 	c.ensureCommandConfigured(command)
@@ -48,12 +51,12 @@ func (c *CircuitRoundTripper) isCircuitEnabled() bool {
 func (c *CircuitRoundTripper) getCircuitCommand(ctx context.Context) (string, error) {
 	val := ctx.Value(circuitCommandKey)
 	if val == nil {
-		return "", errors.New("circuit command is not configured")
+		return "", fmt.Errorf("circuit %s: command not configured in context", c.config.Name)
 	}
 
 	command, ok := val.(string)
 	if !ok {
-		return "", errors.New("circuit command must be a string")
+		return "", fmt.Errorf("circuit %s: command must be a string, got %T", c.config.Name, val)
 	}
 
 	return command, nil
@@ -68,42 +71,82 @@ func (c *CircuitRoundTripper) ensureCommandConfigured(command string) {
 
 func (c *CircuitRoundTripper) executeWithCircuitBreaker(req *http.Request, command string) (*http.Response, error) {
 	var (
-		resp            *http.Response
-		fallbackHandler *fallbackHandler
-		err             error
+		resp *http.Response
+		err  error
 	)
-
-	fallbackHandler = newFallbackHandler(req.Context())
-	errFilterFunc := getErrorFilterFunc(req.Context())
 
 	execFn := func(ctx context.Context) error {
 		resp, err = c.next.RoundTrip(req)
 
-		if modifyErr, filterErr := errFilterFunc(err); modifyErr {
-			return filterErr
+		if err == nil && c.config.shouldTreatStatusCodeAsFailure(resp.StatusCode) {
+			respBody := readResponseBody(resp)
+			return &GenericClientError{
+				c.config.Name,
+				resp.StatusCode,
+				respBody,
+				nil,
+			}
 		}
+
 		return err
 	}
 
-	if hystrixErr := hystrix.DoC(req.Context(), command, execFn, fallbackHandler.handle); hystrixErr != nil {
+	fbHandler := newOrDefaultFallbackHandler(req.Context())
+
+	if hystrixErr := hystrix.DoC(req.Context(), command, execFn, func(ctx context.Context, errInsideOfFallback error) error {
+		err = errInsideOfFallback
+		return fbHandler.handle(ctx, err)
+	}); hystrixErr != nil {
 		return nil, hystrixErr
 	}
 
-	if err != nil {
-		return nil, err
+	if fbHandler.executed {
+		logger.From(req.Context()).Warn("fallback executed",
+			zap.String("command", command),
+			zap.Int("status_code", getStatusCode(resp)),
+			zap.String("error_type", getErrorType(err)),
+			zap.Error(err))
+		return fbHandler.resp, nil
 	}
 
-	if fallbackResp := fallbackHandler.resp; fallbackResp != nil {
-		return fallbackResp, nil
-	}
-
-	return resp, nil
+	return resp, err
 }
 
-func interfaceToReadCloserWithLength(data interface{}) (io.ReadCloser, int64, string, error) {
-	b, err := json.Marshal(data)
-	if err != nil {
-		return nil, 0, "", err
+func getErrorType(err error) string {
+	var statusErr *GenericClientError
+
+	switch {
+	case errors.As(err, &statusErr):
+		return "status_code_error"
+	case errors.Is(err, hystrix.ErrCircuitOpen):
+		return "circuit_open"
+	case errors.Is(err, hystrix.ErrTimeout):
+		return "timeout"
+	case errors.Is(err, hystrix.ErrMaxConcurrency):
+		return "max_concurrency"
+	default:
+		return "other_error"
 	}
-	return io.NopCloser(bytes.NewReader(b)), int64(len(b)), "application/json", nil
+}
+
+func getStatusCode(resp *http.Response) int {
+	if resp == nil {
+		return 0
+	}
+	return resp.StatusCode
+}
+
+func readResponseBody(resp *http.Response) []byte {
+	if resp == nil || resp.Body == nil {
+		return nil
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil
+	}
+	resp.Body.Close()
+	resp.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	return bodyBytes
 }

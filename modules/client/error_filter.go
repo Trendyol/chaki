@@ -1,10 +1,13 @@
 package client
 
-import "context"
+import (
+	"context"
+)
 
+// WIP
 type errorFilterFunc func(error) (bool, error)
 
-func SetErrorFilter(ctx context.Context, filter func(error) (bool, error)) context.Context {
+func SetErrorFilter(ctx context.Context, filter errorFilterFunc) context.Context {
 	return context.WithValue(ctx, circuitErrFilterKey, filter)
 }
 

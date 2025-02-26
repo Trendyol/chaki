@@ -2,77 +2,115 @@ package main
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/Trendyol/chaki/modules/client"
 	"github.com/Trendyol/chaki/modules/server/response"
+	"github.com/go-resty/resty/v2"
 )
 
-type exampleClient struct {
+const (
+	errorEndpoint      = "{category}/error"
+	notFoundEndpoint   = "{category}/not-found"
+	successfulEndpoint = "{category}"
+)
+
+type CustomClient struct {
 	*client.Base
 }
 
-func newClient(f *client.Factory) *exampleClient {
-	return &exampleClient{
-		Base: f.Get("example-client",
-			client.WithErrDecoder(customErrorDecoder),
-			client.WithDriverWrappers(HeaderWrapper())),
+type UltimateRequestBody struct {
+	Message string `json:"message"`
+}
+
+func NewCustomClient(f *client.Factory) *CustomClient {
+
+	return &CustomClient{
+		Base: f.Get("custom-client", client.WithErrDecoder(customErrorDecoder)),
 	}
 }
 
-func (cl *exampleClient) SendHello(ctx context.Context) (string, error) {
-	resp := &response.Response[string]{}
-	if _, err := cl.Request(ctx).SetResult(resp).Get("/hello"); err != nil {
-		return "", err
+func customErrorDecoder(_ context.Context, res *resty.Response) error {
+	if res.IsSuccess() {
+		return nil
 	}
 
-	return resp.Data, nil
+	if res.StatusCode() == 404 {
+		return client.GenericClientError{ParsedBody: "not found from custom err decoder", StatusCode: res.StatusCode()}
+	}
+
+	return client.GenericClientError{ParsedBody: "generic error se the code :)", StatusCode: res.StatusCode()}
 }
 
-func (cl *exampleClient) sendGreetWithQuery(ctx context.Context, req GreetWithQueryRequest) (string, error) {
+func (c *CustomClient) SuccessfulEndpoint(ctx context.Context, req *UltimateRequest) (*response.Response[string], error) {
 	resp := &response.Response[string]{}
 
-	params := map[string]string{
-		"text":        req.Text,
-		"repeatTimes": fmt.Sprintf("%d", req.RepeatTimes),
-	}
-
-	if _, err := cl.Request(ctx).
+	if _, err := c.RequestWithCommand(ctx, "commandpostsuccess").
+		SetPathParam("category", req.Category).
+		SetBody(UltimateRequestBody{Message: req.Message}).
+		SetQueryParam("lang", req.Language).
 		SetResult(resp).
-		SetQueryParams(params).
-		Get("/hello/query"); err != nil {
-		return "", err
+		Post(successfulEndpoint); err != nil {
+		return nil, err
 	}
-	return resp.Data, nil
+
+	return resp, nil
 }
 
-func (cl *exampleClient) sendGreetWithParam(ctx context.Context, req GreetWithParamRequest) (string, error) {
+func (c *CustomClient) GetNotFoundErr(ctx context.Context, req *UltimateRequest) (*response.Response[string], error) {
 	resp := &response.Response[string]{}
 
-	url := fmt.Sprintf("/hello/param/%s", req.Text)
-	params := map[string]string{
-		"repeatTimes": fmt.Sprintf("%d", req.RepeatTimes),
-	}
-
-	if _, err := cl.Request(ctx).
+	if _, err := c.RequestWithCommand(ctx, "commandposterror").
+		SetPathParam("category", req.Category).
+		SetBody(UltimateRequestBody{Message: req.Message}).
+		SetQueryParam("lang", req.Language).
 		SetResult(resp).
-		SetQueryParams(params).
-		Get(url); err != nil {
-		return "", err
+		Post(notFoundEndpoint); err != nil {
+		return nil, err
 	}
 
-	return resp.Data, nil
+	return resp, nil
 }
 
-func (cl *exampleClient) sendGreetWithBody(ctx context.Context, req GreetWithBodyRequest) (string, error) {
+func (c *CustomClient) GetError(ctx context.Context, req *UltimateRequest) (*response.Response[string], error) {
 	resp := &response.Response[string]{}
 
-	if _, err := cl.Request(ctx).
+	if _, err := c.RequestWithCommand(ctx, "commandposterror").
+		SetPathParam("category", req.Category).
+		SetBody(UltimateRequestBody{Message: req.Message}).
+		SetQueryParam("lang", req.Language).
 		SetResult(resp).
-		SetBody(req).
-		Post("/hello/body"); err != nil {
-		return "", err
+		Post(errorEndpoint); err != nil {
+		return nil, err
 	}
 
-	return resp.Data, nil
+	return resp, nil
+}
+
+func (c *CustomClient) GetErrorWithFallback(ctx context.Context, req *UltimateRequest) (*response.Response[string], error) {
+	resp := &response.Response[string]{}
+
+	ctx = client.SetFallbackFunc(ctx, func(ctx context.Context, err error) (any, error) {
+
+		// Any fallback mechanism can apply here. The tricky part here is,
+		// If you use .SetResult(res) method from resty.Request,
+		// You should return the same here. If not, you can handle
+		// The fallback response as you wish by using httpRes.Result()
+		return &response.Response[string]{
+			Data: "this response is from fallback",
+		}, nil
+	})
+
+	httpRes, err := c.RequestWithCommand(ctx, "commandpostfallback").
+		SetPathParam("category", req.Category).
+		SetBody(UltimateRequestBody{Message: req.Message}).
+		SetQueryParam("lang", "en").
+		SetResult(resp).
+		Post(errorEndpoint)
+	_ = httpRes
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+
 }
