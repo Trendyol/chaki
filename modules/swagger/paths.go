@@ -97,6 +97,17 @@ func getParameters(t reflect.Type) []m {
 			p = append(p, pi)
 		}
 
+		if n := f.Tag.Get("reqHeader"); n != "" {
+			pi := getPropertyField(f.Type)
+			pi["in"] = "header"
+			pi["name"] = n
+			pi["description"] = ""
+			if required {
+				pi["required"] = true
+			}
+			p = append(p, pi)
+		}
+
 		if f.Tag.Get("json") != "" {
 			hasBody = true
 		}

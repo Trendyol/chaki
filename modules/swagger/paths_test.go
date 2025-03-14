@@ -17,6 +17,13 @@ type anotherRequest struct {
 	Data string   `json:"data"`
 }
 
+type requestWithHeader struct {
+	ID           string `param:"id"`
+	Name         string `query:"name"`
+	Data         string `json:"data"`
+	CustomHeader string `reqHeader:"X-Custom-Header" validate:"required"`
+}
+
 type response struct {
 	Field string `json:"field"`
 }
@@ -152,6 +159,72 @@ func Test_buildPaths(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Single endpoint with params, query, header, and json body",
+			args: args{
+				eds: []EndpointDef{
+					{
+						Endpoint:     "/test/{id}",
+						Group:        "testGroup",
+						Name:         "testName",
+						Method:       "POST",
+						RequestType:  reflect.TypeOf(requestWithHeader{}),
+						ResponseType: reflect.TypeOf(response{}),
+					},
+				},
+			},
+			want: m{
+				"/test/{id}": m{
+					"post": m{
+						"tags":         []string{"testGroup"},
+						"summary":      "testName",
+						"description":  "",
+						"consumes":     []string{"application/json"},
+						"produces":     []string{"application/json"},
+						"externalDocs": m{},
+						"parameters": []m{
+							{
+								"in":          "path",
+								"name":        "id",
+								"description": "",
+								"required":    true,
+								"type":        "string",
+							},
+							{
+								"in":          "query",
+								"name":        "name",
+								"description": "",
+								"type":        "string",
+							},
+							{
+								"in":          "header",
+								"name":        "X-Custom-Header",
+								"description": "",
+								"required":    true,
+								"type":        "string",
+							},
+							{
+								"in":          "body",
+								"name":        "body",
+								"description": "",
+								"required":    true,
+								"schema": m{
+									"$ref": "#/definitions/requestWithHeader",
+								},
+							},
+						},
+						"responses": m{
+							"200": m{
+								"description": "successful operation",
+								"schema": m{
+									"$ref": "#/definitions/response",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -197,6 +270,43 @@ func Test_getParameters(t *testing.T) {
 					"required":    true,
 					"schema": m{
 						"$ref": "#/definitions/request",
+					},
+				},
+			},
+		},
+		{
+			name: "Struct with path, query, and header params",
+			args: args{
+				t: reflect.TypeOf(requestWithHeader{}),
+			},
+			want: []m{
+				{
+					"in":          "path",
+					"name":        "id",
+					"description": "",
+					"required":    true,
+					"type":        "string",
+				},
+				{
+					"in":          "query",
+					"name":        "name",
+					"description": "",
+					"type":        "string",
+				},
+				{
+					"in":          "header",
+					"name":        "X-Custom-Header",
+					"description": "",
+					"required":    true,
+					"type":        "string",
+				},
+				{
+					"in":          "body",
+					"name":        "body",
+					"description": "",
+					"required":    true,
+					"schema": m{
+						"$ref": "#/definitions/requestWithHeader",
 					},
 				},
 			},
