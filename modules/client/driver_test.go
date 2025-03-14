@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestNewDriverBuilder verifies that a new driver builder is created correctly with the provided configuration
 func TestNewDriverBuilder(t *testing.T) {
 	// Setup
 	cfg := driverTestConfig()
@@ -26,6 +27,7 @@ func TestNewDriverBuilder(t *testing.T) {
 	assert.False(t, builder.d.Debug)
 }
 
+// TestDriverBuilder_AddErrDecoder verifies that error decoders are added correctly to the driver builder
 func TestDriverBuilder_AddErrDecoder(t *testing.T) {
 	// Setup
 	cfg := driverTestConfig()
@@ -50,6 +52,7 @@ func TestDriverBuilder_AddErrDecoder(t *testing.T) {
 	assert.True(t, *decoderCalled, "Error decoder should be called")
 }
 
+// TestDriverBuilder_AddUpdaters verifies that driver updaters are added correctly to the driver builder
 func TestDriverBuilder_AddUpdaters(t *testing.T) {
 	// Setup
 	cfg := driverTestConfig()
@@ -67,6 +70,7 @@ func TestDriverBuilder_AddUpdaters(t *testing.T) {
 	assert.Same(t, builder, result) // Should return itself for chaining
 }
 
+// TestDriverBuilder_AddRoundTripperWrappers verifies that round tripper wrappers are added correctly to the driver builder
 func TestDriverBuilder_AddRoundTripperWrappers(t *testing.T) {
 	// Setup
 	cfg := driverTestConfig()
@@ -84,6 +88,7 @@ func TestDriverBuilder_AddRoundTripperWrappers(t *testing.T) {
 	assert.Same(t, builder, result) // Should return itself for chaining
 }
 
+// TestDriverBuilder_SetRetry verifies that retry configuration is set correctly on the driver builder
 func TestDriverBuilder_SetRetry(t *testing.T) {
 	t.Run("with retry configuration", func(t *testing.T) {
 		// Setup
@@ -102,8 +107,17 @@ func TestDriverBuilder_SetRetry(t *testing.T) {
 
 		// Verify
 		assert.NotNil(t, result)
-		assert.Len(t, builder.rtWrappers, 1)
-		assert.Same(t, builder, result) // Should return itself for chaining
+		assert.Same(t, builder, result)      // Should return itself for chaining
+		assert.Len(t, builder.rtWrappers, 1) // Should add one round tripper wrapper
+
+		// Build the client to verify the round tripper is properly configured
+		client := builder.build()
+		assert.NotNil(t, client)
+
+		// Verify the transport is wrapped with our RetryRoundTripper
+		transport := client.GetClient().Transport
+		_, ok := transport.(*RetryRoundTripper)
+		assert.True(t, ok, "Transport should be wrapped with RetryRoundTripper")
 	})
 
 	t.Run("with nil retry configuration", func(t *testing.T) {

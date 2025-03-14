@@ -113,7 +113,7 @@ func (c *CircuitRoundTripper) executeWithCircuitBreaker(req *http.Request, comma
 }
 
 func getErrorType(err error) string {
-	var statusErr *GenericClientError
+	var statusErr GenericClientError
 
 	switch {
 	case errors.As(err, &statusErr):

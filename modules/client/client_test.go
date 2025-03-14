@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TestNewFactory verifies that the factory is created correctly with the provided configuration and wrappers
 func TestNewFactory(t *testing.T) {
 	// Setup
 	cfg := clientTestConfig()
@@ -23,36 +24,66 @@ func TestNewFactory(t *testing.T) {
 	assert.Equal(t, wrappers, factory.baseWrappers)
 }
 
+// TestFactory_Get verifies that the factory creates clients correctly with various options
 func TestFactory_Get(t *testing.T) {
-	t.Run("creates client with default options", func(t *testing.T) {
-		// Setup
-		cfg := clientTestConfig()
-		factory := NewFactory(cfg, nil)
+	// Define test cases
+	testCases := []struct {
+		name           string
+		setupOptions   []Option
+		verifyFunction func(t *testing.T, client *Base)
+	}{
+		{
+			name:         "creates client with default options",
+			setupOptions: nil,
+			verifyFunction: func(t *testing.T, client *Base) {
+				assert.Equal(t, "testclient", client.name)
+				assert.NotNil(t, client.driver)
+				assert.Equal(t, "https://example.com", client.driver.HostURL)
+			},
+		},
+		{
+			name: "applies options correctly",
+			setupOptions: func() []Option {
+				customErrDecoder, _ := createTestErrDecoder()
+				customWrapper, _ := createDriverWrapper("X-Custom", "value")
+				return []Option{
+					WithErrDecoder(customErrDecoder),
+					WithDriverWrappers(customWrapper),
+				}
+			}(),
+			verifyFunction: func(t *testing.T, client *Base) {
+				assert.NotNil(t, client)
+				// Additional verification can be done here if needed
+			},
+		},
+	}
 
-		// Execute
-		client := factory.Get("testclient")
+	// Run test cases
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Setup
+			cfg := clientTestConfig()
+			factory := NewFactory(cfg, nil)
 
-		// Verify
-		assert.NotNil(t, client)
-		assert.Equal(t, "testclient", client.name)
-		assert.NotNil(t, client.driver)
-		// Verify baseURL is set correctly
-		assert.Equal(t, "https://example.com", client.driver.HostURL)
-	})
+			// Execute
+			client := factory.Get("testclient", tc.setupOptions...)
 
-	t.Run("applies options correctly", func(t *testing.T) {
+			// Verify
+			assert.NotNil(t, client)
+			tc.verifyFunction(t, client)
+		})
+	}
+
+	// Additional test for error decoder functionality
+	t.Run("error decoder is applied and works", func(t *testing.T) {
 		// Setup
 		cfg := clientTestConfig()
 		factory := NewFactory(cfg, nil)
 
 		customErrDecoder, decoderCalled := createTestErrDecoder()
-		customWrapper, wrapperCalled := createDriverWrapper("X-Custom", "value")
 
 		// Execute
-		client := factory.Get("testclient",
-			WithErrDecoder(customErrDecoder),
-			WithDriverWrappers(customWrapper),
-		)
+		client := factory.Get("testclient", WithErrDecoder(customErrDecoder))
 
 		// Create a dummy response to test the error decoder
 		req := client.driver.R().SetContext(context.Background())
@@ -63,13 +94,30 @@ func TestFactory_Get(t *testing.T) {
 		err := customErrDecoder(context.Background(), dummyRes)
 
 		// Verify
-		assert.NotNil(t, client)
 		assert.NoError(t, err)
 		assert.True(t, *decoderCalled, "Custom error decoder should be called")
+	})
+
+	// Additional test for wrapper functionality
+	t.Run("wrapper is applied and works", func(t *testing.T) {
+		// Setup
+		cfg := clientTestConfig()
+		factory := NewFactory(cfg, nil)
+
+		customWrapper, wrapperCalled := createDriverWrapper("X-Custom", "value")
+
+		// Execute
+		client := factory.Get("testclient", WithDriverWrappers(customWrapper))
+
+		// Verify
+		assert.NotNil(t, client)
 		assert.True(t, *wrapperCalled, "Custom wrapper should be applied")
+		// Verify the client has the expected header
+		assert.Equal(t, "value", client.driver.Header.Get("X-Custom"))
 	})
 }
 
+// TestBase_Request verifies that the Request method correctly creates a request with the provided context
 func TestBase_Request(t *testing.T) {
 	// Setup
 	base := &Base{
@@ -86,6 +134,8 @@ func TestBase_Request(t *testing.T) {
 	assert.Equal(t, ctx, req.Context())
 }
 
+// TestBase_RequestWithCommand verifies that the RequestWithCommand method correctly creates a request
+// with the provided context and command
 func TestBase_RequestWithCommand(t *testing.T) {
 	// Setup
 	base := &Base{

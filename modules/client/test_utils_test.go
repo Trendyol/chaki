@@ -1,18 +1,23 @@
+// Package client provides HTTP client functionality with circuit breaker, retry, and fallback capabilities.
 package client
 
 import (
 	"context"
 	"encoding/json"
-	"github.com/spf13/viper"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"time"
 
+	"github.com/spf13/viper"
+
 	"github.com/Trendyol/chaki/config"
+	"github.com/afex/hystrix-go/hystrix"
 	"github.com/go-resty/resty/v2"
 )
+
+// --- Configuration Utilities ---
 
 // clientTestConfig creates a config with proper structure for client_test.go
 // This sets up the config in a nested structure as expected by Factory.Get()
@@ -62,6 +67,8 @@ func driverTestConfig() *config.Config {
 	return cfg
 }
 
+// --- HTTP Server Mocking ---
+
 // mockServer creates a test HTTP server for integration testing
 func mockServer(handler http.HandlerFunc) *httptest.Server {
 	return httptest.NewServer(handler)
@@ -83,6 +90,41 @@ func standardHandler(statusCode int, body map[string]interface{}, responseDelay 
 	}
 }
 
+// --- HTTP Response Utilities ---
+
+// createSuccessResponse generates a successful HTTP response
+func createSuccessResponse(req *http.Request, body string) *http.Response {
+	if body == "" {
+		body = `{"success": true}`
+	}
+
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(body)),
+		Header:     http.Header{"Content-Type": []string{"application/json"}},
+		Request:    req,
+	}
+}
+
+// createErrorResponse generates an error HTTP response
+// Used in retry_rt_test.go and circuit_rt_test.go
+//
+//nolint:unused
+func createErrorResponse(req *http.Request, statusCode int, body string) *http.Response {
+	if body == "" {
+		body = `{"error": "Something went wrong"}`
+	}
+
+	return &http.Response{
+		StatusCode: statusCode,
+		Body:       io.NopCloser(strings.NewReader(body)),
+		Header:     http.Header{"Content-Type": []string{"application/json"}},
+		Request:    req,
+	}
+}
+
+// --- Mock RoundTripper ---
+
 // MockRoundTripper allows tracking and simulating HTTP requests
 type MockRoundTripper struct {
 	RoundTripFunc    func(req *http.Request) (*http.Response, error)
@@ -91,6 +133,7 @@ type MockRoundTripper struct {
 	RecordedRequests []*http.Request
 }
 
+// RoundTrip implements the http.RoundTripper interface
 func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	m.RequestCount++
 	m.LastRequest = req
@@ -108,33 +151,7 @@ func (m *MockRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) 
 	}, nil
 }
 
-// createSuccessResponse generates a successful HTTP response
-func createSuccessResponse(req *http.Request, body string) *http.Response {
-	if body == "" {
-		body = `{"success": true}`
-	}
-
-	return &http.Response{
-		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(body)),
-		Header:     http.Header{"Content-Type": []string{"application/json"}},
-		Request:    req,
-	}
-}
-
-// createErrorResponse generates an error HTTP response
-func createErrorResponse(req *http.Request, statusCode int, body string) *http.Response {
-	if body == "" {
-		body = `{"error": "Something went wrong"}`
-	}
-
-	return &http.Response{
-		StatusCode: statusCode,
-		Body:       io.NopCloser(strings.NewReader(body)),
-		Header:     http.Header{"Content-Type": []string{"application/json"}},
-		Request:    req,
-	}
-}
+// --- Error Handling Utilities ---
 
 // createTestErrDecoder creates an ErrDecoder that tracks its calls
 func createTestErrDecoder() (ErrDecoder, *bool) {
@@ -149,6 +166,8 @@ func createTestErrDecoder() (ErrDecoder, *bool) {
 	return decoder, &called
 }
 
+// --- Driver Wrapper Utilities ---
+
 // createDriverWrapper creates a DriverWrapper that tracks its calls
 func createDriverWrapper(header, value string) (DriverWrapper, *bool) {
 	called := false
@@ -157,4 +176,63 @@ func createDriverWrapper(header, value string) (DriverWrapper, *bool) {
 		return client.SetHeader(header, value)
 	}
 	return wrapper, &called
+}
+
+// --- Circuit Breaker Utilities ---
+
+// resetHystrix clears all Hystrix command configurations and metrics
+// Useful for test isolation between different test cases
+func resetHystrix() {
+	hystrix.Flush()
+}
+
+// withCircuitCommand adds circuit command to context for tests
+func withCircuitCommand(ctx context.Context, command string) context.Context {
+	return context.WithValue(ctx, circuitCommandKey, command)
+}
+
+// triggerCircuitOpen forces a circuit to open for testing circuit breaker recovery
+func triggerCircuitOpen(command string) {
+	// Configure the command with a low error threshold
+	hystrix.ConfigureCommand(command, hystrix.CommandConfig{
+		Timeout:                10,
+		MaxConcurrentRequests:  1,
+		ErrorPercentThreshold:  1, // Will open with just one error
+		RequestVolumeThreshold: 1, // Only need one request to trigger
+		SleepWindow:            100,
+	})
+
+	// Run a function that will time out to force the circuit to open
+	_ = hystrix.Do(command, func() error {
+		time.Sleep(20 * time.Millisecond) // Longer than the timeout
+		return nil
+	}, nil)
+}
+
+// --- Fallback Utilities ---
+
+// createTestFallbackFunc creates a fallback function for testing with tracked calls
+func createTestFallbackFunc(responseData interface{}) (fallbackFunc, *bool, *error) {
+	called := false
+	var passedError error
+
+	fn := func(ctx context.Context, err error) (interface{}, error) {
+		called = true
+		passedError = err
+		return responseData, nil
+	}
+
+	return fn, &called, &passedError
+}
+
+// createFailingFallbackFunc creates a fallback function that returns an error
+func createFailingFallbackFunc() (fallbackFunc, *bool) {
+	called := false
+
+	fn := func(ctx context.Context, err error) (interface{}, error) {
+		called = true
+		return nil, err // Simply returns the passed error
+	}
+
+	return fn, &called
 }
