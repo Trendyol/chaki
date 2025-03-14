@@ -20,12 +20,12 @@ func (s *Service) GenerateText(text string, rt int) (string, error) {
 	return str, nil
 }
 
-func (s *Service) GenerateTextWithHeaders(text string, rt int, headers map[string]string) (string, error) {
+func (s *Service) GenerateTextWithMetadata(text string, rt int, metadata map[string]string) (string, error) {
 	str := ""
 
-	// Add headers information to the response
-	str += "Headers received:\n"
-	for key, value := range headers {
+	// Add headers and cookies information to the response
+	str += "Metadata received:\n"
+	for key, value := range metadata {
 		str += fmt.Sprintf("%s: %s\n", key, value)
 	}
 	str += "\n"

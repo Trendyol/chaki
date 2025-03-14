@@ -35,12 +35,12 @@ func (c *HelloController) greetHandler(_ context.Context, _ typlect.NoParam) (st
 }
 
 func (c *HelloController) greetWithBody(_ context.Context, req GreetWithBodyRequest) (string, error) {
-	// Create a map of headers from the request
-	headers := map[string]string{
+	metadata := map[string]string{
 		"X-Custom-Header": req.CustomHeader,
+		"session_token":   req.SessionToken,
 	}
 
-	return c.svc.GenerateTextWithHeaders(req.Text, req.RepeatTimes, headers)
+	return c.svc.GenerateTextWithMetadata(req.Text, req.RepeatTimes, metadata)
 }
 
 func (c *HelloController) greetWithQuery(_ context.Context, req GreetWithQueryRequest) (string, error) {

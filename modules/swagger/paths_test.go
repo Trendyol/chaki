@@ -24,6 +24,21 @@ type requestWithHeader struct {
 	CustomHeader string `reqHeader:"X-Custom-Header" validate:"required"`
 }
 
+type requestWithCookie struct {
+	ID           string `param:"id"`
+	Name         string `query:"name"`
+	Data         string `json:"data"`
+	SessionToken string `cookie:"session_token" validate:"required"`
+}
+
+type requestWithHeaderAndCookie struct {
+	ID           string `param:"id"`
+	Name         string `query:"name"`
+	Data         string `json:"data"`
+	CustomHeader string `reqHeader:"X-Custom-Header" validate:"required"`
+	SessionToken string `cookie:"session_token" validate:"required"`
+}
+
 type response struct {
 	Field string `json:"field"`
 }
@@ -225,6 +240,145 @@ func Test_buildPaths(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "Single endpoint with params, query, cookie, and json body",
+			args: args{
+				eds: []EndpointDef{
+					{
+						Endpoint:     "/test/{id}",
+						Group:        "testGroup",
+						Name:         "testName",
+						Method:       "POST",
+						RequestType:  reflect.TypeOf(requestWithCookie{}),
+						ResponseType: reflect.TypeOf(response{}),
+					},
+				},
+			},
+			want: m{
+				"/test/{id}": m{
+					"post": m{
+						"tags":         []string{"testGroup"},
+						"summary":      "testName",
+						"description":  "",
+						"consumes":     []string{"application/json"},
+						"produces":     []string{"application/json"},
+						"externalDocs": m{},
+						"parameters": []m{
+							{
+								"in":          "path",
+								"name":        "id",
+								"description": "",
+								"required":    true,
+								"type":        "string",
+							},
+							{
+								"in":          "query",
+								"name":        "name",
+								"description": "",
+								"type":        "string",
+							},
+							{
+								"in":          "cookie",
+								"name":        "session_token",
+								"description": "",
+								"required":    true,
+								"type":        "string",
+							},
+							{
+								"in":          "body",
+								"name":        "body",
+								"description": "",
+								"required":    true,
+								"schema": m{
+									"$ref": "#/definitions/requestWithCookie",
+								},
+							},
+						},
+						"responses": m{
+							"200": m{
+								"description": "successful operation",
+								"schema": m{
+									"$ref": "#/definitions/response",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Single endpoint with params, query, header, and cookie params",
+			args: args{
+				eds: []EndpointDef{
+					{
+						Endpoint:     "/test/{id}",
+						Group:        "testGroup",
+						Name:         "testName",
+						Method:       "POST",
+						RequestType:  reflect.TypeOf(requestWithHeaderAndCookie{}),
+						ResponseType: reflect.TypeOf(response{}),
+					},
+				},
+			},
+			want: m{
+				"/test/{id}": m{
+					"post": m{
+						"tags":         []string{"testGroup"},
+						"summary":      "testName",
+						"description":  "",
+						"consumes":     []string{"application/json"},
+						"produces":     []string{"application/json"},
+						"externalDocs": m{},
+						"parameters": []m{
+							{
+								"in":          "path",
+								"name":        "id",
+								"description": "",
+								"required":    true,
+								"type":        "string",
+							},
+							{
+								"in":          "query",
+								"name":        "name",
+								"description": "",
+								"type":        "string",
+							},
+							{
+								"in":          "header",
+								"name":        "X-Custom-Header",
+								"description": "",
+								"required":    true,
+								"type":        "string",
+							},
+							{
+								"in":          "cookie",
+								"name":        "session_token",
+								"description": "",
+								"required":    true,
+								"type":        "string",
+							},
+							{
+								"in":          "body",
+								"name":        "body",
+								"description": "",
+								"required":    true,
+								"schema": m{
+									"$ref": "#/definitions/requestWithHeaderAndCookie",
+								},
+							},
+						},
+						"responses": m{
+							"200": m{
+								"description": "successful operation",
+								"schema": m{
+									"$ref": "#/definitions/response",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -307,6 +461,87 @@ func Test_getParameters(t *testing.T) {
 					"required":    true,
 					"schema": m{
 						"$ref": "#/definitions/requestWithHeader",
+					},
+				},
+			},
+		},
+		{
+			name: "Struct with path, query, and cookie params",
+			args: args{
+				t: reflect.TypeOf(requestWithCookie{}),
+			},
+			want: []m{
+				{
+					"in":          "path",
+					"name":        "id",
+					"description": "",
+					"required":    true,
+					"type":        "string",
+				},
+				{
+					"in":          "query",
+					"name":        "name",
+					"description": "",
+					"type":        "string",
+				},
+				{
+					"in":          "cookie",
+					"name":        "session_token",
+					"description": "",
+					"required":    true,
+					"type":        "string",
+				},
+				{
+					"in":          "body",
+					"name":        "body",
+					"description": "",
+					"required":    true,
+					"schema": m{
+						"$ref": "#/definitions/requestWithCookie",
+					},
+				},
+			},
+		},
+		{
+			name: "Struct with path, query, header, and cookie params",
+			args: args{
+				t: reflect.TypeOf(requestWithHeaderAndCookie{}),
+			},
+			want: []m{
+				{
+					"in":          "path",
+					"name":        "id",
+					"description": "",
+					"required":    true,
+					"type":        "string",
+				},
+				{
+					"in":          "query",
+					"name":        "name",
+					"description": "",
+					"type":        "string",
+				},
+				{
+					"in":          "header",
+					"name":        "X-Custom-Header",
+					"description": "",
+					"required":    true,
+					"type":        "string",
+				},
+				{
+					"in":          "cookie",
+					"name":        "session_token",
+					"description": "",
+					"required":    true,
+					"type":        "string",
+				},
+				{
+					"in":          "body",
+					"name":        "body",
+					"description": "",
+					"required":    true,
+					"schema": m{
+						"$ref": "#/definitions/requestWithHeaderAndCookie",
 					},
 				},
 			},

@@ -76,6 +76,7 @@ func build[Req, Res any](f HandlerFunc[Req, Res], defaultStatus ...int) fiber.Ha
 		hasContentType := len(c.Request().Header.Peek("content-type")) > 0
 		hasContentLength := c.Request().Header.ContentLength() > 0
 		hasHeaders := c.Request().Header.Len() > 0
+		hasCookies := len(c.Request().Header.Peek("cookie")) > 0
 		hasBody := isMethodWithBody(c.Method()) && (hasContentLength || hasContentType || len(c.Body()) > 0)
 
 		if hasInput {
@@ -99,6 +100,12 @@ func build[Req, Res any](f HandlerFunc[Req, Res], defaultStatus ...int) fiber.Ha
 
 			if hasHeaders {
 				if err := c.ReqHeaderParser(&req); err != nil {
+					return err
+				}
+			}
+
+			if hasCookies {
+				if err := c.CookieParser(&req); err != nil {
 					return err
 				}
 			}
