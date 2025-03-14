@@ -74,6 +74,10 @@ func build[Req, Res any](f HandlerFunc[Req, Res], defaultStatus ...int) fiber.Ha
 		hasQuery := len(c.Queries()) > 0
 		hasParam := len(c.AllParams()) > 0
 		hasContentType := len(c.Request().Header.Peek("content-type")) > 0
+		hasContentLength := c.Request().Header.ContentLength() > 0
+		hasHeaders := c.Request().Header.Len() > 0
+		hasCookies := len(c.Request().Header.Peek("cookie")) > 0
+		hasBody := isMethodWithBody(c.Method()) && (hasContentLength || hasContentType || len(c.Body()) > 0)
 
 		if hasInput {
 			if hasParam {
@@ -88,8 +92,20 @@ func build[Req, Res any](f HandlerFunc[Req, Res], defaultStatus ...int) fiber.Ha
 				}
 			}
 
-			if hasContentType {
+			if hasBody && isMethodWithBody(c.Method()) {
 				if err := c.BodyParser(&req); err != nil {
+					return err
+				}
+			}
+
+			if hasHeaders {
+				if err := c.ReqHeaderParser(&req); err != nil {
+					return err
+				}
+			}
+
+			if hasCookies {
+				if err := c.CookieParser(&req); err != nil {
 					return err
 				}
 			}
@@ -120,5 +136,14 @@ func build[Req, Res any](f HandlerFunc[Req, Res], defaultStatus ...int) fiber.Ha
 		}
 
 		return c.Status(status).JSON(resp)
+	}
+}
+
+func isMethodWithBody(method string) bool {
+	switch method {
+	case fiber.MethodPost, fiber.MethodPut, fiber.MethodPatch, fiber.MethodDelete:
+		return true
+	default:
+		return false
 	}
 }
