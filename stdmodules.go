@@ -1,9 +1,11 @@
 package chaki
 
 import (
+	"github.com/Trendyol/chaki/as"
 	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/logger"
 	"github.com/Trendyol/chaki/module"
+	"github.com/Trendyol/chaki/util/health"
 	"go.uber.org/fx"
 )
 
@@ -28,4 +30,23 @@ func loggerModule() *module.Module {
 		lc.Append(fx.StartStopHook(logger.Init, logger.Sync))
 	}
 	return module.New("logger").Invoke(syncLogger)
+}
+
+func healthModule() *module.Module {
+	asHealthProbes := as.Interface[health.Probe]("healthprobes")
+
+	m := module.New("health")
+
+	m.Provide(
+		asHealthProbes.Grouper(),
+	)
+
+	m.AddProvideHook(
+		module.ProvideHook{
+			Match: asHealthProbes.Match,
+			Wrap:  asHealthProbes.Value,
+		},
+	)
+
+	return m
 }

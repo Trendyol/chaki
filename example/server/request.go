@@ -4,6 +4,8 @@ type GreetWithBodyRequest struct {
 	Text           string `json:"text" validate:""`
 	RepeatTimes    int    `json:"repeatTimes" validate:"required"`
 	NecessaryParam string `query:"necessaryParam" validate:"required"`
+	CustomHeader   string `reqHeader:"X-Custom-Header"`
+	SessionToken   string `cookie:"session_token" validate:"required"`
 }
 
 type GreetWithQueryRequest struct {

@@ -204,6 +204,7 @@ Commands are scoped to their respective clients. This means that even if you use
 client.Request(ctx).Get("/api/users")
 
 // This will use circuit breaker with command name "get-users"
+// NOTE: WIP on supporting circuit breaker on client.Request(ctx), resolving the circuit name from incoming request
 client.RequestWithCommand(ctx, "get-users").Get("/api/users")
 ```
 

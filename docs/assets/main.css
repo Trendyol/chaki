@@ -55,8 +55,10 @@ h3 {
   padding-left: 1rem;
 }
 
-.markdown-section pre > code * {
+.markdown-section pre > code {
   font-family: "Roboto Mono", monospace;
+  font-size: 0.85rem !important;
+  font-weight: normal !important;
 }
 
 .cover-main .buttons {

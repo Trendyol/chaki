@@ -1,0 +1,49 @@
+### Greet - Simple greeting
+GET http://localhost:8080/hello/greet
+
+### Greet with Query Parameters
+GET http://localhost:8080/hello/query?text=Hello%20World&repeatTimes=3
+
+### Greet with Path Parameters
+GET http://localhost:8080/hello/param/HelloFromPath?repeatTimes=2
+
+### Greet with Body and Custom Header
+POST http://localhost:8080/hello/body?necessaryParam=required
+Content-Type: application/json
+X-Custom-Header: CustomValue
+Cookie: session_token=abc123
+
+{
+  "text": "Hello from body request",
+  "repeatTimes": 2
+}
+
+### Greet with Body and Different Custom Header
+POST http://localhost:8080/hello/body?necessaryParam=required
+Content-Type: application/json
+X-Custom-Header: AnotherValue
+Cookie: session_token=xyz789
+
+{
+  "text": "Testing header parsing",
+  "repeatTimes": 3
+}
+
+### Greet with Body and No Custom Header but with Cookie
+POST http://localhost:8080/hello/body?necessaryParam=required
+Content-Type: application/json
+Cookie: session_token=cookie123
+
+{
+  "text": "No custom header here",
+  "repeatTimes": 1
+}
+
+### Greet with Body and No Metadata
+POST http://localhost:8080/hello/body?necessaryParam=required
+Content-Type: application/json
+
+{
+  "text": "No metadata here",
+  "repeatTimes": 1
+} 

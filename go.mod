@@ -8,12 +8,13 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/Trendyol/kafka-konsumer/v2 v2.3.3
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
+	github.com/agiledragon/gomonkey/v2 v2.11.0
 	github.com/couchbase/gocb/v2 v2.9.1
 	github.com/go-playground/validator/v10 v10.22.0
 	github.com/go-resty/resty/v2 v2.13.1
 	github.com/gofiber/contrib/fibernewrelic v1.3.0
 	github.com/gofiber/contrib/otelfiber/v2 v2.1.1
-	github.com/gofiber/fiber/v2 v2.52.5
+	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/google/uuid v1.6.0
 	github.com/newrelic/go-agent/v3 v3.34.0
 	github.com/segmentio/kafka-go v0.4.47
@@ -34,7 +35,7 @@ require (
 require (
 	github.com/Trendyol/kafka-cronsumer v1.5.3 // indirect
 	github.com/Trendyol/otel-kafka-konsumer v0.0.7 // indirect
-	github.com/andybalholm/brotli v1.0.5 // indirect
+	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/ansrivas/fiberprometheus/v2 v2.6.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -61,12 +62,12 @@ require (
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/klauspost/compress v1.17.0 // indirect
+	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.15 // indirect
+	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mhmtszr/concurrent-swiss-map v1.0.8 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
@@ -100,7 +101,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240401170217-c3f982113cda // indirect
 	google.golang.org/grpc v1.63.2 // indirect
