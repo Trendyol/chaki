@@ -18,10 +18,10 @@ var defaultConfigMap = map[string]any{
 	"kvdurabletimeout": "10000ms",
 	"kvscantimeout":    "10000ms",
 	"viewtimeout":      "75000ms",
-	"querytimeuot":     "75000ms",
+	"querytimeout":     "75000ms",
 	"analyticstimeout": "75000ms",
 	"searchtimeout":    "75000ms",
-	"managmenttimeuot": "75000ms",
+	"managmenttimeout": "75000ms",
 }
 
 func setDefaultConfigs(cfg *config.Config) {
