@@ -59,7 +59,7 @@ server:
   addr: ":8080"
   logging: true
   cors:
-    allowedOrigins: "http://example.com,http://anotherExample.com"
+    allowedOrigins: "http://example.com,http://anotherexample.com"
     allowCredentials: "true"
 ```
 
