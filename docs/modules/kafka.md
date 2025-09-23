@@ -115,10 +115,3 @@ func (c *Consumer) Consume(ctx context.Context, msg *consumer.Message) error {
 }
 
 ```
-
-
-
-
-
-
-

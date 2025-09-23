@@ -51,10 +51,10 @@ func newCluster(cfg *config.Config, opts *options) (*gocb.Cluster, error) {
 			KVDurableTimeout:  cbcfg.GetDuration("kvdurabletimeout"),
 			KVScanTimeout:     cbcfg.GetDuration("kvscantimeout"),
 			ViewTimeout:       cbcfg.GetDuration("viewtimeout"),
-			QueryTimeout:      cbcfg.GetDuration("querytimeuot"),
+			QueryTimeout:      cbcfg.GetDuration("querytimeout"),
 			AnalyticsTimeout:  cbcfg.GetDuration("analyticstimeout"),
 			SearchTimeout:     cbcfg.GetDuration("searchtimeout"),
-			ManagementTimeout: cbcfg.GetDuration("managmenttimeuot"),
+			ManagementTimeout: cbcfg.GetDuration("managmenttimeout"),
 		},
 	}
 
