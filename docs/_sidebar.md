@@ -3,10 +3,12 @@
   - [Quick Start](getting-started/quickstart.md)
 
 - Modules
-  - [Std Modules](modules/std.md) 
   - [Client](modules/client.md)
-  - [Orm](modules/orm.md)
-  - [Swagger](modules/swagger.md)
-  - [New Relic](modules/newrelic.md)
-  - [Client](modules/client.md)
+  - [Couchbase](modules/couchbase.md)
   - [Kafka](modules/kafka.md)
+  - [New Relic](modules/newrelic.md)
+  - [ORM](modules/orm.md)
+  - [OTEL](modules/otel.md)
+  - [Server](modules/server.md)
+  - [Standard Modules](modules/std.md)
+  - [Swagger](modules/swagger.md)

@@ -94,6 +94,7 @@ func defaultFiber(
 		ReadBufferSize: serverCfg.GetInt("readbuffersize"),
 		ReadTimeout:    serverCfg.GetDuration("readtimeout"),
 		WriteTimeout:   serverCfg.GetDuration("writetimeout"),
+		StrictRouting:  serverCfg.GetBool("strictrouting"),
 		ErrorHandler:   opts.errHandler,
 	}
 
@@ -145,6 +146,7 @@ func setDefaultFiberConfigs(cfg *config.Config) {
 	serverCfg.SetDefault("readtimeout", "10s")
 	serverCfg.SetDefault("writetimeout", "10s")
 	serverCfg.SetDefault("logging", false)
+	serverCfg.SetDefault("strictrouting", false)
 }
 
 func getSwaggerDefs(rs []*registry) []swagger.EndpointDef {
