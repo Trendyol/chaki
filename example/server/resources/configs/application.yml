@@ -3,6 +3,19 @@ server:
     # to be able to use wildcard, we need to declare it between double quotes.
     allowedOrigins: "*"
     allowCredentials: false
+  
+  # Swagger host-based access control
+  swagger:
+    # Block external access while allowing internal and development access
+    blockedHostsContains:
+      - "api.example.com"
+      - "external.company.com"
+    # Alternative: Use allowlist instead of blocklist
+    # allowedHostsContains:
+    #   - "localhost"
+    #   - "127.0.0.1"
+    #   - "internal.company.com"
+    #   - "dev.company.com"
 
 info:
   description: "this app is an example usage of Chaki."
