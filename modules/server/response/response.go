@@ -23,8 +23,8 @@ type Response[T any] struct {
 	ValidationErrors []validation.FieldError `json:"validationErrors,omitempty"`
 }
 
-func Success(data any) Response[any] {
-	return Response[any]{
+func Success[T any](data T) Response[T] {
+	return Response[T]{
 		Success: true,
 		Data:    data,
 	}

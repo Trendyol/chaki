@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-
 	"github.com/Trendyol/chaki/config"
 	"github.com/go-resty/resty/v2"
 )
@@ -18,6 +17,8 @@ type Factory struct {
 }
 
 func NewFactory(cfg *config.Config, wrappers []DriverWrapper) *Factory {
+	initCircuitPresets(cfg)
+	initRetryPresets(cfg)
 	return &Factory{
 		cfg:          cfg,
 		baseWrappers: wrappers,
@@ -34,16 +35,24 @@ func (f *Factory) Get(name string, opts ...Option) *Base {
 		opt.Apply(cOpts)
 	}
 
+	clientCfg := f.cfg.Of("client").Of(name)
+
 	return &Base{
-		driver: newDriverBuilder(f.cfg.Of("client").Of(name)).
+		name: name,
+		driver: newDriverBuilder(clientCfg).
 			AddErrDecoder(cOpts.errDecoder).
 			AddUpdaters(f.baseWrappers...).
 			AddUpdaters(cOpts.driverWrappers...).
+			SetRetry(getRetryConfigs(clientCfg)).
+			SetCircuit(getCircuitConfigs(clientCfg)).
 			build(),
-		name: name,
 	}
 }
 
-func (r *Base) Request(ctx context.Context) *resty.Request {
-	return r.driver.R().SetContext(ctx)
+func (b *Base) Request(ctx context.Context) *resty.Request {
+	return b.driver.R().SetContext(ctx)
+}
+
+func (b *Base) RequestWithCommand(ctx context.Context, command string) *resty.Request {
+	return b.driver.R().SetContext(context.WithValue(ctx, circuitCommandKey, command))
 }

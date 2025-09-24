@@ -1,6 +1,7 @@
 package client
 
 import (
+	"github.com/Trendyol/chaki/modules/client/common"
 	"net/http"
 
 	"github.com/Trendyol/chaki/module"
@@ -12,8 +13,10 @@ type httpRoundTripper struct {
 	tr http.RoundTripper
 }
 
-func newRoundTripper(tr http.RoundTripper) http.RoundTripper {
-	return &httpRoundTripper{tr}
+func newRoundTripper() common.RoundTripperWrapper {
+	return func(tr http.RoundTripper) http.RoundTripper {
+		return &httpRoundTripper{tr}
+	}
 }
 
 func (t *httpRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {

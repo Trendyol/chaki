@@ -1,6 +1,0 @@
-server:
-  addr: ":8081"
-
-client:
-  example-client:
-    baseUrl: "http://localhost:8082"

@@ -1,0 +1,26 @@
+server:
+  addr: ":8081"
+
+client:
+  retryPresets:
+    - name: "Custom Preset - 1"
+      count: 3
+      interval: 100ms
+      maxDelay: 2s
+      delayType: constant
+  custom-client:
+    baseUrl: "http://localhost:8082"
+    circuit:
+      preset: custom
+      enabled: true
+      timeout: 3000
+      maxConcurrentRequests: 1
+      errorPercentThreshold: 1
+      requestVolumeThreshold: 1
+      sleepWindow: 5000
+      statusCodeConfig:
+        treatAllErrorCodesAsFailure: true
+        ignoreStatusCodes: [404]
+    retry:
+      enabled: true
+      preset: "Custom Preset - 1"

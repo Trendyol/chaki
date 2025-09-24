@@ -11,11 +11,38 @@ import (
 
 type ErrDecoder func(context.Context, *resty.Response) error
 
+func DefaultErrDecoder(name string) ErrDecoder {
+	return func(_ context.Context, res *resty.Response) error {
+		if res.IsSuccess() {
+			return nil
+		}
+
+		return NewGenericClientError(name, res.StatusCode(), res.Body())
+	}
+}
+
 type GenericClientError struct {
 	ClientName string
 	StatusCode int
 	RawBody    []byte
 	ParsedBody interface{}
+}
+
+func NewGenericClientError(clientName string, statusCode int, rawBody []byte) GenericClientError {
+	apiErr := GenericClientError{
+		ClientName: clientName,
+		StatusCode: statusCode,
+		RawBody:    rawBody,
+	}
+
+	var jsonBody interface{}
+	if err := json.Unmarshal(rawBody, &jsonBody); err == nil {
+		apiErr.ParsedBody = jsonBody
+	} else {
+		apiErr.ParsedBody = string(rawBody)
+	}
+
+	return apiErr
 }
 
 func (e GenericClientError) Error() string {
@@ -24,6 +51,10 @@ func (e GenericClientError) Error() string {
 		msg += ": " + details
 	}
 	return msg
+}
+
+func (e GenericClientError) Status() int {
+	return e.StatusCode
 }
 
 func (e GenericClientError) extractErrorDetails() string {
@@ -52,27 +83,4 @@ func (e GenericClientError) extractErrorDetails() string {
 	}
 
 	return strings.Join(details, "; ")
-}
-
-func DefaultErrDecoder(name string) ErrDecoder {
-	return func(_ context.Context, res *resty.Response) error {
-		if res.IsSuccess() {
-			return nil
-		}
-
-		apiErr := GenericClientError{
-			ClientName: name,
-			StatusCode: res.StatusCode(),
-			RawBody:    res.Body(),
-		}
-
-		var jsonBody interface{}
-		if err := json.Unmarshal(res.Body(), &jsonBody); err == nil {
-			apiErr.ParsedBody = jsonBody
-		} else {
-			apiErr.ParsedBody = string(res.Body())
-		}
-
-		return apiErr
-	}
 }
