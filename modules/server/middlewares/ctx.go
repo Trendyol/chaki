@@ -11,11 +11,19 @@ import (
 )
 
 func ContextBinder(cfg *config.Config) fiber.Handler {
-	customHeaders := cfg.Of("server").GetStringMap("loggingHeaders")
+	serverCfg := cfg.Of("server")
+	customHeaders := serverCfg.GetStringMap("loggingHeaders")
 	mapping := ctxvaluer.GetHeaderMapping(customHeaders)
+	timeout := serverCfg.GetDuration("writetimeout")
 
 	return func(c *fiber.Ctx) error {
-		c.SetUserContext(createContext(c, mapping))
+		ctx := createContext(c, mapping)
+		if timeout > 0 {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, timeout)
+			defer cancel()
+		}
+		c.SetUserContext(ctx)
 		return c.Next()
 	}
 }
