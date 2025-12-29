@@ -2,6 +2,7 @@ package chaki
 
 import (
 	"github.com/Trendyol/chaki/internal/di"
+	"github.com/Trendyol/chaki/logger"
 	"github.com/Trendyol/chaki/module"
 	"github.com/Trendyol/chaki/util/slc"
 )
@@ -66,7 +67,7 @@ func (app *App) applyStdModules(o *options) error {
 
 	app.Use(
 		cfgm,
-		loggerModule(),
+		logger.Module(),
 		healthModule(),
 	)
 

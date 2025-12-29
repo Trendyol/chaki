@@ -8,6 +8,7 @@ import (
 
 	"github.com/Trendyol/chaki/util/appctx"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
@@ -15,13 +16,31 @@ var (
 	initialized     = false
 )
 
-func Init() error {
+const DefaultTimeKey = "timestamp"
+
+func Init(timeEncoder zapcore.TimeEncoder, level string, timeKey string) error {
 	if initialized {
 		return errors.New("logger already initliazed")
 	}
 
 	zc := zap.NewProductionConfig()
-	zc.EncoderConfig.TimeKey = "timestamp"
+
+	if timeKey != "" {
+		zc.EncoderConfig.TimeKey = timeKey
+	} else {
+		zc.EncoderConfig.TimeKey = DefaultTimeKey
+	}
+
+	if timeEncoder != nil {
+		zc.EncoderConfig.EncodeTime = timeEncoder
+	}
+
+	if level != "" {
+		var zapLevel zapcore.Level
+		if err := zapLevel.UnmarshalText([]byte(level)); err == nil {
+			zc.Level = zap.NewAtomicLevelAt(zapLevel)
+		}
+	}
 
 	logger, err := zc.Build()
 	if err != nil {

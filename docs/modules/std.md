@@ -58,10 +58,57 @@ secret_val: ${secret:val}
 
 ## Logger Module
 
-Logger module is built on top of the `uber-go/zap`. This module can start a logger using context and allows to passing of default logging variables, these logging variables can be configured by other modules as well to provide extra information by default
+Logger module is built on top of the `uber-go/zap`. This module is automatically included as a standard module and reads configuration from the config file. It provides a logger instance that can be accessed via context and allows passing of default logging variables, which can be configured by other modules as well to provide extra information by default.
+
+### Configuration
+
+The logger module can be configured via the `logger` section in your config file:
+
+```yaml
+logger:
+  timeKey: timestamp
+  timeEncoder: iso8601
+  level: info
+```
+
+#### Configuration Options
+
+- **timeKey** (string, default: `timestamp`): Specifies the key used for the timestamp in log output.
+
+- **timeEncoder** (string, default: `epoch`): Specifies the time encoding format for log timestamps. Available options:
+  - `epoch` - Unix epoch time (default)
+  - `iso8601` - ISO8601 format
+  - `rfc3339` - RFC3339 format
+  - `rfc3339nano` - RFC3339 format with nanoseconds
+
+- **level** (string, default: `info`): Sets the minimum log level. Available options:
+  - `debug`
+  - `info`
+  - `warn`
+  - `error`
+  - `dpanic`
+  - `panic`
+  - `fatal`
+
+### Context and Parameter Mapping
+
+The Logger module, in conjunction with `ctxvaluer`, extracts HTTP headers into log fields. The `server.loggingHeaders` configuration uses a `field_name: Header-Name` format.
+
+**Default Mappings:**
+- `x-correlationId`: Correlation ID for request tracing.
+- `x-executor-user`: Identity of the user performing the action.
+- `x-agentname`: Name of the calling agent/service.
+- `x-owner`: Owner of the resource or process.
+
+These can be extended or overridden in `config.yaml`.
+
+### Usage
+
+The logger is automatically initialized when the application starts. You can access it from context:
 
 ```go
 func foo(ctx context.Context) error {
 	logger.From(ctx).Info("function executed")
+	return nil
 }
 ```

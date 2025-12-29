@@ -3,10 +3,8 @@ package chaki
 import (
 	"github.com/Trendyol/chaki/as"
 	"github.com/Trendyol/chaki/config"
-	"github.com/Trendyol/chaki/logger"
 	"github.com/Trendyol/chaki/module"
 	"github.com/Trendyol/chaki/util/health"
-	"go.uber.org/fx"
 )
 
 func configModule(opts configOptions) (*module.Module, error) {
@@ -23,13 +21,6 @@ func configModule(opts configOptions) (*module.Module, error) {
 	m.Provide(Valuer(cfg))
 
 	return m, nil
-}
-
-func loggerModule() *module.Module {
-	syncLogger := func(lc fx.Lifecycle) {
-		lc.Append(fx.StartStopHook(logger.Init, logger.Sync))
-	}
-	return module.New("logger").Invoke(syncLogger)
 }
 
 func healthModule() *module.Module {
