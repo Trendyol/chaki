@@ -69,6 +69,7 @@ logger:
   timeKey: timestamp
   timeEncoder: iso8601
   level: info
+  timezone: Europe/Istanbul
 ```
 
 #### Configuration Options
@@ -89,6 +90,12 @@ logger:
   - `dpanic`
   - `panic`
   - `fatal`
+
+- **timezone** (string, default: `Local`): Sets the timezone for log timestamps. Supports IANA location names, UTC, and UTC offsets. Available options:
+  - `Local` - System's local timezone (default)
+  - `UTC` - Universal Coordinated Time
+  - `Europe/Istanbul`, `America/New_York`, etc. - IANA location names
+  - `UTC+3`, `UTC-5`, etc. - UTC offsets in hours
 
 ### Context and Parameter Mapping
 

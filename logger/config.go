@@ -10,12 +10,15 @@ const (
 	TimeEncoderISO8601     = "iso8601"
 	TimeEncoderRFC3339     = "rfc3339"
 	TimeEncoderRFC3339Nano = "rfc3339nano"
+
+	DefaultTimezone = "Local"
 )
 
 var defaultConfigMap = map[string]any{
 	"timeEncoder": TimeEncoderEpoch,
 	"level":       "info",
 	"timeKey":     DefaultTimeKey,
+	"timezone":    DefaultTimezone,
 }
 
 var timeEncoderMap = map[string]zapcore.TimeEncoder{
