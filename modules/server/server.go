@@ -109,7 +109,7 @@ func defaultFiber(
 	}
 
 	app.Use(
-		middlewares.ContextBinder(),
+		middlewares.ContextBinder(cfg),
 		middlewares.HealthCheck(middlewares.HealthOptions{
 			LivenessPath:  serverCfg.GetString("healthcheck.endpoints.liveness"),
 			ReadinessPath: serverCfg.GetString("healthcheck.endpoints.readiness"),
@@ -147,6 +147,7 @@ func setDefaultFiberConfigs(cfg *config.Config) {
 	serverCfg.SetDefault("writetimeout", "10s")
 	serverCfg.SetDefault("logging", false)
 	serverCfg.SetDefault("strictrouting", false)
+	serverCfg.SetDefault("loggingheaders", map[string]any{})
 }
 
 func getSwaggerDefs(rs []*registry) []swagger.EndpointDef {

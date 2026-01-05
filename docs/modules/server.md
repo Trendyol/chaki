@@ -49,6 +49,7 @@ Configure via YAML or code. Default config under `server` key:
 - `writetimeout`: Write timeout (default: 10s)
 - `strictrouting`: Enable strict routing (default: false)
 - `logging`: Enable request logging (default: false)
+- `loggingHeaders`: Map of `log_field_name: HTTP-Header-Name` to extract headers into logs. Defaults to `x-correlationId`, `x-executor-user`, `x-agentname`, and `x-owner`.
 - `cors`: CORS settings (e.g., `allowedOrigins`, `allowCredentials`)
 - `healthcheck.endpoints.liveness`: Liveness probe path (default: "/__monitor/live")
 - `healthcheck.endpoints.readiness`: Readiness probe path (default: "/__monitor/ready")
@@ -58,6 +59,9 @@ Example config.yaml:
 server:
   addr: ":8080"
   logging: true
+  loggingHeaders:
+    user-agent: User-Agent
+    custom-field: X-Custom-Header
   cors:
     allowedOrigins: "http://example.com,http://anotherexample.com"
     allowCredentials: "true"

@@ -16,6 +16,7 @@ func Log() fiber.Handler {
 				"incoming request",
 				zap.String("path", c.Path()),
 				zap.String("method", c.Method()),
+				zap.Any("headers", c.GetReqHeaders()),
 				zap.Any("query", c.Queries()),
 				zap.String("body", string(c.Body())),
 			)

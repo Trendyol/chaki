@@ -5,9 +5,11 @@ import (
 	"errors"
 	"io/fs"
 	"syscall"
+	"time"
 
 	"github.com/Trendyol/chaki/util/appctx"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var (
@@ -15,13 +17,37 @@ var (
 	initialized     = false
 )
 
-func Init() error {
+const DefaultTimeKey = "timestamp"
+
+func Init(timeEncoder zapcore.TimeEncoder, level string, timeKey string, location *time.Location) error {
 	if initialized {
 		return errors.New("logger already initliazed")
 	}
 
 	zc := zap.NewProductionConfig()
-	zc.EncoderConfig.TimeKey = "timestamp"
+
+	if timeKey != "" {
+		zc.EncoderConfig.TimeKey = timeKey
+	} else {
+		zc.EncoderConfig.TimeKey = DefaultTimeKey
+	}
+
+	if timeEncoder == nil {
+		timeEncoder = zapcore.EpochTimeEncoder
+	}
+
+	if location != nil {
+		timeEncoder = wrapTimeEncoderWithLocation(timeEncoder, location)
+	}
+
+	zc.EncoderConfig.EncodeTime = timeEncoder
+
+	if level != "" {
+		var zapLevel zapcore.Level
+		if err := zapLevel.UnmarshalText([]byte(level)); err == nil {
+			zc.Level = zap.NewAtomicLevelAt(zapLevel)
+		}
+	}
 
 	logger, err := zc.Build()
 	if err != nil {
@@ -63,4 +89,10 @@ func From(ctx context.Context) *zap.Logger {
 
 func WithLogger(parent context.Context, logger *zap.Logger) context.Context {
 	return loggerCtxValuer.Set(parent, logger)
+}
+
+func wrapTimeEncoderWithLocation(encoder zapcore.TimeEncoder, location *time.Location) zapcore.TimeEncoder {
+	return func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+		encoder(t.In(location), enc)
+	}
 }

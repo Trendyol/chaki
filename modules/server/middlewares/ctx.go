@@ -4,36 +4,53 @@ import (
 	"context"
 	"time"
 
+	"github.com/Trendyol/chaki/config"
 	"github.com/Trendyol/chaki/modules/common/ctxvaluer"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
-func ContextBinder() fiber.Handler {
+func ContextBinder(cfg *config.Config) fiber.Handler {
+	serverCfg := cfg.Of("server")
+	customHeaders := serverCfg.GetStringMap("loggingHeaders")
+	mapping := ctxvaluer.GetHeaderMapping(customHeaders)
+	timeout := serverCfg.GetDuration("writetimeout")
+
 	return func(c *fiber.Ctx) error {
-		c.SetUserContext(createContext(c))
+		ctx := createContext(c, mapping)
+		if timeout > 0 {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, timeout)
+			defer cancel()
+		}
+		c.SetUserContext(ctx)
 		return c.Next()
 	}
 }
 
-func ContextBinderWithTimeout(timeout time.Duration) fiber.Handler {
+func ContextBinderWithTimeout(cfg *config.Config, timeout time.Duration) fiber.Handler {
+	customHeaders := cfg.Of("server").GetStringMap("loggingHeaders")
+	mapping := ctxvaluer.GetHeaderMapping(customHeaders)
+
 	return func(c *fiber.Ctx) error {
-		ctx, cancel := context.WithTimeout(createContext(c), timeout)
+		ctx, cancel := context.WithTimeout(createContext(c, mapping), timeout)
 		defer cancel()
 
 		c.SetUserContext(ctx)
-
 		return c.Next()
 	}
 }
 
-func createContext(c *fiber.Ctx) context.Context {
-	ctx := context.Background()
+func createContext(c *fiber.Ctx, mapping map[string]string) context.Context {
+	params := make(ctxvaluer.CreateParams)
 
-	return ctxvaluer.CreateBaseTaskContext(ctx, ctxvaluer.CreateParams{
-		CorrelationID: c.Get(ctxvaluer.CorrelationIDKey, uuid.NewString()),
-		ExecutorUser:  c.Get(ctxvaluer.ExecutorUserKey),
-		AgentName:     c.Get(ctxvaluer.AgentNameKey, ""),
-		Owner:         c.Get(ctxvaluer.OwnerKey, ""),
-	})
+	for logKey, headerName := range mapping {
+		val := c.Get(headerName)
+		if logKey == ctxvaluer.CorrelationIDKey && val == "" {
+			val = uuid.NewString()
+		}
+		params[logKey] = val
+	}
+
+	return ctxvaluer.CreateBaseTaskContext(context.Background(), params)
 }
