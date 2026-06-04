@@ -89,6 +89,7 @@ To access the details of the errors, you can cast the error type into `GenericCl
 
 You can provide a custom error handler to handle errors in a more specific way. The error handler function should accept a `context.Context` and a `*resty.Response` as parameters.
 But returning an error that implements `Statuser` from the server module _having a *Status() int* method will help you to return correct status code from your endpoint._
+
 ```go
 func newClient(f *client.Factory) *exampleClient {
 	return &exampleClient{
@@ -159,9 +160,7 @@ func newClient(f *client.Factory) *exampleClient {
 
 ## Circuit Breaker
 
-**-Currently WIP-**
-
-The client module includes a built-in circuit breaker functionality using Hystrix-go with predefined circuit presets and ability to add some custom settings.
+The client module includes a built-in circuit breaker using [Hystrix-go](https://github.com/afex/hystrix-go), implemented at the HTTP `RoundTripper` layer with predefined presets and per-client configuration.
 
 This feature is turned-off by default. To enable it, you can use the following configurations.
 
@@ -204,7 +203,6 @@ Commands are scoped to their respective clients. This means that even if you use
 client.Request(ctx).Get("/api/users")
 
 // This will use circuit breaker with command name "get-users"
-// NOTE: WIP on supporting circuit breaker on client.Request(ctx), resolving the circuit name from incoming request
 client.RequestWithCommand(ctx, "get-users").Get("/api/users")
 ```
 
@@ -213,6 +211,43 @@ client.RequestWithCommand(ctx, "get-users").Get("/api/users")
 - **default**: Moderate settings (5s timeout, 100 concurrent requests)
 - **aggressive**: Strict settings (2s timeout, 50 concurrent requests)
 - **relaxed**: Lenient settings (10s timeout, 200 concurrent requests)
+
+### HTTP status code failure rules
+
+Circuit metrics treat HTTP responses as failures based on `circuit.statusCodeConfig`:
+
+```yaml
+client:
+  my-client:
+    circuit:
+      enabled: true
+      preset: custom
+      statusCodeConfig:
+        treatAllErrorCodesAsFailure: true # count any status >= 400 as failure
+        specificStatusCodes: [404, 429] # always count these as failures
+        ignoreStatusCodes: [404] # never count these as failures (highest precedence)
+```
+
+Default behavior (when `statusCodeConfig` is omitted): only **5xx** responses count as failures; **4xx** responses do not trip the breaker.
+
+Precedence: `ignoreStatusCodes` → `specificStatusCodes` → `treatAllErrorCodesAsFailure` → default (5xx only).
+
+### Fallback on circuit open
+
+When the circuit is open or execution fails, an optional fallback can supply a synthetic HTTP response:
+
+```go
+ctx = client.SetFallbackFunc(ctx, func(ctx context.Context, err error) (any, error) {
+    return map[string]string{"status": "degraded"}, nil
+})
+req := cl.RequestWithCommand(ctx, "get-users").Get("/api/users")
+```
+
+The fallback return value is JSON-encoded into a `200 OK` response unless you return an error to propagate the failure.
+
+### Error filter (experimental)
+
+`client.SetErrorFilter` attaches a per-request filter evaluated before fallback. This API is marked WIP in code; prefer status-code configuration for production use.
 
 ## Retry
 
@@ -255,7 +290,6 @@ client:
 ### Delay Types:
 
 1. **Constant Delay**:
-
    - Fixed time interval between retries
    - Example: 100ms -> 100ms -> 100ms
 
@@ -270,35 +304,30 @@ client:
 ### Built-in Presets:
 
 1. **default**:
-
    - Count: 3 retries
    - Interval: 100ms
    - MaxDelay: 5s
    - DelayType: constant
 
 2. **exponential**:
-
    - Count: 3 retries
    - Interval: 100ms
    - MaxDelay: 5s
    - DelayType: exponential
 
 3. **aggressive**:
-
    - Count: 7 retries
    - Interval: 50ms
    - MaxDelay: 2s
    - DelayType: constant
 
 4. **aggressiveExponential**:
-
    - Count: 7 retries
    - Interval: 50ms
    - MaxDelay: 2s
    - DelayType: exponential
 
 5. **relaxed**:
-
    - Count: 2 retries
    - Interval: 500ms
    - MaxDelay: 2s

@@ -5,6 +5,7 @@
 The Server module in Chaki provides a Fiber-based HTTP server framework. It allows you to build web servers with controllers, routes, middlewares, validation, and response handling. It integrates seamlessly with other Chaki modules like Swagger, OTEL, New Relic, and ORM.
 
 Key features:
+
 - Controller-based routing
 - Automatic request parsing (query, params, body, headers, cookies)
 - Built-in validation
@@ -16,17 +17,20 @@ Key features:
 To use the Server module:
 
 1. Import the module:
+
    ```go
    import "github.com/Trendyol/chaki/modules/server"
    ```
 
 2. Add it to your Chaki application:
+
    ```go
    app := chaki.New()
    app.Use(server.Module(/* options */))
    ```
 
 3. Provide controllers:
+
    ```go
    app.Provide(NewYourController)
    ```
@@ -46,15 +50,16 @@ Configure via YAML or code. Default config under `server` key:
 - `bodylimit`: Max body size (default: 4MB)
 - `readbuffersize`: Read buffer size (default: 16KB)
 - `readtimeout`: Read timeout (default: 10s)
-- `writetimeout`: Write timeout (default: 10s)
+- `writetimeout`: Write timeout for Fiber responses and for the per-request `context.Context` deadline (default: 10s). When greater than zero, `ContextBinder` wraps the user context with `context.WithTimeout` so handlers and downstream clients can observe `ctx.Done()`.
 - `strictrouting`: Enable strict routing (default: false)
 - `logging`: Enable request logging (default: false)
 - `loggingHeaders`: Map of `log_field_name: HTTP-Header-Name` to extract headers into logs. Defaults to `x-correlationId`, `x-executor-user`, `x-agentname`, and `x-owner`.
 - `cors`: CORS settings (e.g., `allowedOrigins`, `allowCredentials`)
-- `healthcheck.endpoints.liveness`: Liveness probe path (default: "/__monitor/live")
-- `healthcheck.endpoints.readiness`: Readiness probe path (default: "/__monitor/ready")
+- `healthcheck.endpoints.liveness`: Liveness probe path (default: "/\_\_monitor/live")
+- `healthcheck.endpoints.readiness`: Readiness probe path (default: "/\_\_monitor/ready")
 
 Example config.yaml:
+
 ```yaml
 server:
   addr: ":8080"
@@ -68,6 +73,15 @@ server:
 ```
 
 This configuration allows CORS requests from specific origins and enables credentials.
+
+### Request context
+
+The `ContextBinder` middleware builds the request `context.Context` used by controllers and downstream modules:
+
+- **Header propagation** — Values from `loggingHeaders` (and defaults such as `x-correlationId`) are stored on the context and attached to the request logger. An empty correlation ID is auto-generated.
+- **Deadline** — When `writetimeout` is set to a positive duration, the user context receives a timeout equal to that value. Cancel the context by returning from the handler; long-running work should select on `ctx.Done()`.
+
+For a fixed timeout independent of config, use `middlewares.ContextBinderWithTimeout` in custom middleware chains.
 
 ### Advanced Fiber Configuration
 
